@@ -139,10 +139,11 @@ interface Drawable {
 }
 
 type Point = Drawable & {
-  x: () => number;
+  x: number;
   y: () => number;
   label: string;
   color: string;
+  labelX: number;
 };
 
 type Line = Drawable & {
@@ -151,15 +152,13 @@ type Line = Drawable & {
   color: string;
 };
 
-function parse(
-  branchs: Branch[],
-  pointSpace = 20,
-  lineSpace = 100
-): Drawable[] {
+function parse(branchs: Branch[], pointSpace = 25, lineSpace = 25): Drawable[] {
   const drawables: Drawable[] = [];
 
   const points: { [key: string]: Point } = {};
+  const lines: Line[] = [];
   const mergeCommits = [];
+  const labelX = (branchs.length + 1) * lineSpace;
   for (let i = 0; i < branchs.length; i++) {
     const branch = branchs[i];
     for (let j = 0; j < branch.commits.length; j++) {
@@ -171,12 +170,12 @@ function parse(
         branch,
         commit,
         i * lineSpace + 20,
+        labelX,
         pointSpace,
         j > 0 ? points[branch.commits[j - 1].hash] : undefined
       );
-      drawables.push(points[commit.hash]);
       if (j > 0) {
-        drawables.push(
+        lines.push(
           newLine(
             points[commit.hash],
             points[branch.commits[j - 1].hash],
@@ -191,39 +190,43 @@ function parse(
     if (!mergeCommit || !points[mergeCommit] || !commit.branch) {
       return;
     }
-    drawables.push(newMergeLine(points[mergeCommit], points[commit.hash], points[mergeCommit].color))
+    lines.push(
+      newMergeLine(
+        points[mergeCommit],
+        points[commit.hash],
+        points[mergeCommit].color
+      )
+    );
     const y = points[commit.hash].y();
     points[commit.hash].y = () =>
       Math.max(y, points[mergeCommit].y()) + pointSpace;
   });
-  return drawables.reverse();
+  drawables.push(...lines);
+  drawables.push(...Object.keys(points).map((hash) => points[hash]));
+  return drawables;
 }
 
-function newMergeLine(
-  from: Point,
-  to: Point,
-  color: string,
-): Line {
-
+function newMergeLine(from: Point, to: Point, color: string): Line {
   return {
     from: from,
     to: to,
     color: color,
     draw: function () {
-      const x1 = from.x();
+      const x1 = from.x;
       const y1 = from.y();
-      const x2 = to.x();
+      const x2 = to.x;
       const y2 = to.y();
-      return `<path d="M ${x1} ${y1} C 
-      ${0.8 * x1 + 0.2 * x2} ${0.2 * y1 + 0.8 * y2} 
-      ${0.2 * x1 + 0.8 * x2} ${0.8 * y1 + 0.2 * y2} 
-      ${x2} ${y2}" stroke="${this.color}" stroke-width="2" fill="none" />`;
+      return `<path d="M ${x1} ${y1} C ${0.8 * x1 + 0.2 * x2} ${
+        0.2 * y1 + 0.8 * y2
+      } ${0.2 * x1 + 0.8 * x2} ${0.8 * y1 + 0.2 * y2} ${x2} ${y2}" stroke="${
+        this.color
+      }" stroke-width="2" fill="none" />`;
     },
     x1: function () {
-      return Math.min(this.from.x(), this.to.x()) - 2;
+      return Math.min(this.from.x, this.to.x) - 2;
     },
     x2: function () {
-      return Math.max(this.from.x(), this.to.x()) + 2;
+      return Math.max(this.from.x, this.to.x) + 2;
     },
     y1: function () {
       return Math.min(this.from.y(), this.to.y()) - 2;
@@ -240,15 +243,15 @@ function newLine(from: Point, to: Point, color: string): Line {
     to: to,
     color: color,
     draw: function () {
-      return `<line x1="${this.from.x()}" y1="${this.from.y()}" x2="${this.to.x()}" y2="${this.to.y()}" stroke="${
-        this.color
-      }" stroke-width="2" />`;
+      return `<line x1="${this.from.x}" y1="${this.from.y()}" x2="${
+        this.to.x
+      }" y2="${this.to.y()}" stroke="${this.color}" stroke-width="2" />`;
     },
     x1: function () {
-      return Math.min(this.from.x(), this.to.x()) - 2;
+      return Math.min(this.from.x, this.to.x) - 2;
     },
     x2: function () {
-      return Math.max(this.from.x(), this.to.x()) + 2;
+      return Math.max(this.from.x, this.to.x) + 2;
     },
     y1: function () {
       return Math.min(this.from.y(), this.to.y()) - 2;
@@ -263,24 +266,34 @@ function newPoint(
   branch: Branch,
   commit: Commit,
   branchX: number,
+  labelX: number,
   pointSpace: number,
   base?: Point
 ): Point {
   return {
-    x: () => branchX,
+    x: branchX,
     y: () => (base ? base.y() + pointSpace : pointSpace),
     label: commit.message,
     color: branch.color,
+    labelX: labelX,
     draw: function () {
-      return `<circle cx="${this.x()}" cy="${this.y()}" r="5" fill="${
+      const y = this.y();
+      return `${circleOfPoint(
+        commit.hash,
+        this.x,
+        y,
+        5,
         this.color
-      }" />`;
+      )} ${textPathOfPoint(commit.hash, labelX, y + 5, 200)} ${textOfPoint(
+        commit.hash,
+        this.label
+      )}`;
     },
     x1: function () {
-      return this.x() - 5;
+      return this.x - 5;
     },
     x2: function () {
-      return this.x() + 5;
+      return this.x + 5;
     },
     y1: function () {
       return this.y() - 5;
@@ -291,17 +304,33 @@ function newPoint(
   };
 }
 
+function circleOfPoint(
+  id: string,
+  x: number,
+  y: number,
+  r: number,
+  color: string
+) {
+  return `<circle id="p-${id}" cx="${x}" cy="${y}" r="${r}" fill="${color}" />`;
+}
+
+function textPathOfPoint(id: string, x: number, y: number, len: number) {
+  return `<path id="tp-${id}" d="M ${x} ${y} L ${x + len} ${y}"/>`;
+}
+
+function textOfPoint(id: string, text: string) {
+  return `<text><textPath xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#tp-${id}">${text}</textPath></text>`;
+}
+
 function getSvg(test: string): string {
   const branchs = getBranches(test);
   const drawables = parse(branchs);
 
   return `<svg width='${
-    Math.max(...drawables.map((d) => d.x2())) + 50
+    Math.max(...drawables.map((d) => d.x2())) + 250
   }' height='${
     Math.max(...drawables.map((d) => d.y2())) + 50
-  }' xmlns='http://www.w3.org/2000/svg'>
-    ${drawables.map((d) => d.draw()).join("\n")}
-  </svg>`;
+  }' xmlns='http://www.w3.org/2000/svg'>\n  ${drawables.map((d) => d.draw()).join("\n  ")}\n</svg>`;
 }
 
 function randomColor(): string {

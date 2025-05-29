@@ -5,7 +5,7 @@ import { gitGraphPlugin } from "../plugin";
 const md = MarkdownIt().use(gitGraphPlugin);
 
 test("one line", async () => {
-    expect(md.render(`\`\`\`git-graph\n
+  const res = md.render(`\`\`\`git-graph\n
     [main]
     1 kj
     2 jl
@@ -15,7 +15,10 @@ test("one line", async () => {
     7 lj
     8<3 ukj
     9<4,6 'merge 4 7'
-    \`\`\``)).toBe(`<svg width='175' height='155' xmlns='http://www.w3.org/2000/svg'>
+    \`\`\``)
+    console.log(res);
+    
+    expect(res).toBe(`<svg width='175' height='155' xmlns='http://www.w3.org/2000/svg'>
     <path d="M 20 60 C 
       40 76 
       100 64 
