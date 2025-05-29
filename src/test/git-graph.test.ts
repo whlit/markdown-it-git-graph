@@ -17,9 +17,7 @@ it('branchs', async () => {
         return expects
       },
       allCommitSizeToBe: (len: number) => {
-        expect(
-          branches.reduce((pre, curr) => pre + curr.commits.length, 0),
-        ).toBe(len)
+        expect(branches.reduce((pre, curr) => pre + curr.commits.length, 0)).toBe(len)
         return expects
       },
       branchCommitSizeToBe: (name: string, len: number) => {
@@ -45,17 +43,53 @@ it('branchs', async () => {
   }
 
   // k k
-  branchExpect('k k', 1, 'main', 1, 1)
+  branchExpect(
+    'k k',
+    1,
+    'main',
+    1,
+    1,
+  )
   // 数字
-  branchExpect('1 k', 1, 'main', 1, 1)
+  branchExpect(
+    '1 k',
+    1,
+    'main',
+    1,
+    1,
+  )
   // 多个空格
-  branchExpect('1 kk l al', 1, 'main', 1, 1)
+  branchExpect(
+    '1 kk l al',
+    1,
+    'main',
+    1,
+    1,
+  )
   // 带单引号
-  branchExpect('\'k k\' k', 1, 'main', 1, 1)
+  branchExpect(
+    '\'k k\' k',
+    1,
+    'main',
+    1,
+    1,
+  )
   // 单个单引号
-  branchExpect('k \'k', 1, 'main', 1, 1)
+  branchExpect(
+    'k \'k',
+    1,
+    'main',
+    1,
+    1,
+  )
   // 多个单引号且带空格
-  branchExpect('\'k \' \'k\'', 1, 'main', 1, 1)
+  branchExpect(
+    '\'k \' \'k\'',
+    1,
+    'main',
+    1,
+    1,
+  )
   // 多个commit
   branchExpect(
     `k k k

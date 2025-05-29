@@ -1,21 +1,31 @@
 import type { PluginWithOptions } from 'markdown-it'
 import type { MarkdownItGitGraphOptions } from './options'
 
-const gitGraphPlugin: PluginWithOptions<MarkdownItGitGraphOptions> = (
-  md,
-  gitGraphOptions?: MarkdownItGitGraphOptions,
-) => {
-  const fence = md.renderer.rules.fence
-  md.renderer.rules.fence = (tokens, idx, options, env, self) => {
-    const token = tokens[idx]
-    const language = token.info.trim()
+const gitGraphPlugin: PluginWithOptions<MarkdownItGitGraphOptions>
+  = (md, gitGraphOptions?: MarkdownItGitGraphOptions) => {
+    const fence = md.renderer.rules.fence
+    md.renderer.rules.fence = (
+      tokens,
+      idx,
+      options,
+      env,
+      self,
+    ) => {
+      const token = tokens[idx]
+      const language = token.info.trim()
 
-    if (language.startsWith('git-graph')) {
-      return getSvg(token.content, gitGraphOptions)
+      if (language.startsWith('git-graph')) {
+        return getSvg(token.content, gitGraphOptions)
+      }
+      return fence?.(
+        tokens,
+        idx,
+        options,
+        env,
+        self,
+      ) ?? ''
     }
-    return fence?.(tokens, idx, options, env, self) ?? ''
   }
-}
 
 interface Commit {
   hash: string
@@ -180,18 +190,13 @@ function parse(branchs: Branch[], pointSpace = 25, lineSpace = 25): Drawable[] {
       )
       const point = points[commit.hash]
       if (j > 0) {
-        lines.push(
-          newLine(points[branch.commits[j - 1].hash], point, branch.color),
-        )
+        lines.push(newLine(points[branch.commits[j - 1].hash], point, branch.color))
       }
       else if (!commit.merge) {
-        lines.push(
-          newLine(
-            { x: point.x, y: height - pointSpace / 2 },
-            point,
-            branch.color,
-          ),
-        )
+        lines.push(newLine({
+          x: point.x,
+          y: height - pointSpace / 2,
+        }, point, branch.color))
       }
 
       if (commit.merge) {
@@ -213,12 +218,7 @@ function parse(branchs: Branch[], pointSpace = 25, lineSpace = 25): Drawable[] {
   return drawables
 }
 
-function newMergeLine(
-  from: Point,
-  to: Point,
-  color: string,
-  pointSpace: number,
-): Line {
+function newMergeLine(from: Point, to: Point, color: string, pointSpace: number): Line {
   return {
     draw() {
       const flag = Math.abs(to.y - from.y) > pointSpace
@@ -235,11 +235,7 @@ function newMergeLine(
   }
 }
 
-function newLine(
-  from: Point | { x: number, y: number },
-  to: Point,
-  color: string,
-): Line {
+function newLine(from: Point | { x: number, y: number }, to: Point, color: string): Line {
   return {
     draw() {
       return `<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="${color}" stroke-width="2" />`
@@ -265,10 +261,7 @@ function newPoint(
         this.y,
         5,
         this.color,
-      )} ${textPathOfPoint(commit.hash, labelX, y + 5, 200)} ${textOfPoint(
-        commit.hash,
-        commit.message,
-      )}`
+      )} ${textPathOfPoint(commit.hash, labelX, y + 5, 200)} ${textOfPoint(commit.hash, commit.message)}`
     },
   }
 }
@@ -294,10 +287,7 @@ function textOfPoint(id: string, text: string): string {
 function getSvg(text: string, options?: MarkdownItGitGraphOptions): string {
   const branchs = getBranches(text, options)
   const drawables = parse(branchs, 25, 15)
-  const commitSize = branchs.reduce(
-    (pre, curr) => pre + curr.commits.length,
-    0,
-  )
+  const commitSize = branchs.reduce((pre, curr) => pre + curr.commits.length, 0)
   return `<svg width='${branchs.length * 25 + 300}' height='${
     commitSize * 25 + 25
   }' xmlns='http://www.w3.org/2000/svg'>\n  ${drawables
