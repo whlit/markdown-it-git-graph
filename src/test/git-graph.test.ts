@@ -1,10 +1,10 @@
-import { expect, test } from 'vitest'
-import { getBranches, gitGraphPlugin } from '../plugin'
 import MarkdownIt from 'markdown-it'
+import { expect, it } from 'vitest'
+import { getBranches, gitGraphPlugin } from '../plugin'
 
 const md = MarkdownIt().use(gitGraphPlugin)
 
-test('branchs', async () => {
+it('branchs', async () => {
   const tester = (text: string) => {
     const branches = getBranches(text)
     const expects = {
@@ -110,20 +110,9 @@ test('branchs', async () => {
     2,
     4,
   )
-
-  console.log(md.render(`\`\`\`git-graph
-    [main]
-    abc sonmething
-    bbc 'do something'
-    kqi<bai 'merge dev to main'
-    [dev]
-    kqj 'do something' 2
-    bai 'do something2'
-    \`\`\``));
-  
 })
 
-test('svg', async () => { 
+it('svg', async () => {
   const svg = md.render(`\`\`\`git-graph
     [main]
     abc sonmething

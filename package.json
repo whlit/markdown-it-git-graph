@@ -2,26 +2,28 @@
   "name": "markdown-it-git-graph",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "author": "whlit",
+  "license": "ISC",
+  "keywords": [],
   "scripts": {
     "test": "vitest",
     "build": "tsc",
-    "dev": "node index.js"
-  },
-  "keywords": [],
-  "author": "whlit",
-  "license": "ISC",
-  "devDependencies": {
-    "@vitest/coverage-v8": "3.1.4",
-    "fs-extra": "^11.0.0",
-    "markdown-it": "^14.1.0",
-    "typescript": "^5.8.3",
-    "vitest": "^3.1.4"
+    "lint": "eslint --cache .",
+    "lint:fix": "pnpm lint --fix"
   },
   "peerDependencies": {
     "markdown-it": "^14.1.0"
   },
   "dependencies": {
     "@types/markdown-it": "^14.1.2"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^4.13.2",
+    "@vitest/coverage-v8": "3.1.4",
+    "eslint": "^9.27.0",
+    "fs-extra": "^11.0.0",
+    "markdown-it": "^14.1.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
   }
 }
