@@ -1,6 +1,5 @@
 import { PluginWithOptions } from "markdown-it";
 import { MarkdownItGitGraphOptions } from "./options";
-import { L } from "vitest/dist/chunks/reporters.d.C-cu31ET";
 
 export const gitGraphPlugin: PluginWithOptions<MarkdownItGitGraphOptions> = (
   md,
@@ -21,6 +20,7 @@ export const gitGraphPlugin: PluginWithOptions<MarkdownItGitGraphOptions> = (
 type Commit = {
   hash: string;
   message: string;
+  date: number;
   merge?: string;
   branch?: Branch;
 };
@@ -83,13 +83,18 @@ function getBranches(text: string): Branch[] {
 
 function parseCommit(row: string): Commit | undefined {
   const cells = getCells(row);
-  if (cells.length < 1) {
+  if (cells.length < 2) {
     return;
   }
   const commit: Commit = {
     hash: cells[0],
     message: cells[1],
+    date: 0,
   };
+  if (cells.length > 2) {
+    const date = Date.parse(cells[2]);
+    commit.date = isNaN(date) ? 0 : date;
+  }
   if (commit.hash.includes("<")) {
     const strs = commit.hash.split("<");
     if (strs.length < 2) {
@@ -132,15 +137,11 @@ function getCells(row: string): string[] {
 
 interface Drawable {
   draw: () => string;
-  x1: () => number;
-  y1: () => number;
-  x2: () => number;
-  y2: () => number;
 }
 
 type Point = Drawable & {
   x: number;
-  y: () => number;
+  y: number;
   label: string;
   color: string;
   labelX: number;
@@ -154,6 +155,11 @@ type Line = Drawable & {
 
 function parse(branchs: Branch[], pointSpace = 25, lineSpace = 25): Drawable[] {
   const drawables: Drawable[] = [];
+
+  const commits: Commit[] = [];
+  branchs.forEach((branch) => commits.push(...branch.commits));
+  commits.sort((a, b) => (a.merge && a.merge === b.hash ? 1 : a.date - b.date));
+  const height = (commits.length + 1) * pointSpace;
 
   const points: { [key: string]: Point } = {};
   const lines: Line[] = [];
@@ -169,10 +175,9 @@ function parse(branchs: Branch[], pointSpace = 25, lineSpace = 25): Drawable[] {
       points[commit.hash] = newPoint(
         branch,
         commit,
-        i * lineSpace + 20,
-        labelX,
-        pointSpace,
-        j > 0 ? points[branch.commits[j - 1].hash] : undefined
+        (i + 1) * lineSpace,
+        height - (commits.indexOf(commit) + 1) * pointSpace,
+        labelX
       );
       if (j > 0) {
         lines.push(
@@ -190,51 +195,37 @@ function parse(branchs: Branch[], pointSpace = 25, lineSpace = 25): Drawable[] {
     if (!mergeCommit || !points[mergeCommit] || !commit.branch) {
       return;
     }
-    lines.push(
-      newMergeLine(
-        points[mergeCommit],
-        points[commit.hash],
-        points[mergeCommit].color
-      )
-    );
-    const y = points[commit.hash].y();
-    points[commit.hash].y = () =>
-      Math.max(y, points[mergeCommit].y()) + pointSpace;
+    const from = points[mergeCommit];
+    const to = points[commit.hash];
+    lines.push(newMergeLine(from, to, from.color, pointSpace));
   });
   drawables.push(...lines);
   drawables.push(...Object.keys(points).map((hash) => points[hash]));
   return drawables;
 }
 
-function newMergeLine(from: Point, to: Point, color: string): Line {
+function newMergeLine(from: Point, to: Point, color: string, pointSpace: number): Line {
   return {
     from: from,
     to: to,
     color: color,
     draw: function () {
+      const flag = Math.abs(to.y - from.y) > pointSpace
       const x1 = from.x;
-      const y1 = from.y();
+      const y1 = to.y > from.y ? to.y - pointSpace : to.y + pointSpace;
       const x2 = to.x;
-      const y2 = to.y();
-      return `<path d="M ${x1} ${y1} C ${0.8 * x1 + 0.2 * x2} ${
+      const y2 = to.y;
+      return `${flag ? line(from.x, from.y, x1, y1, this.color) : ''}<path d="M ${x1} ${y1} C ${0.8 * x1 + 0.2 * x2} ${
         0.2 * y1 + 0.8 * y2
       } ${0.2 * x1 + 0.8 * x2} ${0.8 * y1 + 0.2 * y2} ${x2} ${y2}" stroke="${
         this.color
       }" stroke-width="2" fill="none" />`;
-    },
-    x1: function () {
-      return Math.min(this.from.x, this.to.x) - 2;
-    },
-    x2: function () {
-      return Math.max(this.from.x, this.to.x) + 2;
-    },
-    y1: function () {
-      return Math.min(this.from.y(), this.to.y()) - 2;
-    },
-    y2: function () {
-      return Math.max(this.from.y(), this.to.y()) + 2;
-    },
+    }
   };
+}
+
+function line(x1: number, y1: number, x2: number, y2: number, color: string): string {
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="2" />`;
 }
 
 function newLine(from: Point, to: Point, color: string): Line {
@@ -243,41 +234,25 @@ function newLine(from: Point, to: Point, color: string): Line {
     to: to,
     color: color,
     draw: function () {
-      return `<line x1="${this.from.x}" y1="${this.from.y()}" x2="${
-        this.to.x
-      }" y2="${this.to.y()}" stroke="${this.color}" stroke-width="2" />`;
-    },
-    x1: function () {
-      return Math.min(this.from.x, this.to.x) - 2;
-    },
-    x2: function () {
-      return Math.max(this.from.x, this.to.x) + 2;
-    },
-    y1: function () {
-      return Math.min(this.from.y(), this.to.y()) - 2;
-    },
-    y2: function () {
-      return Math.max(this.from.y(), this.to.y()) + 2;
-    },
+      return line(from.x, from.y, to.x, to.y, color);
+    }
   };
 }
 
 function newPoint(
   branch: Branch,
   commit: Commit,
-  branchX: number,
-  labelX: number,
-  pointSpace: number,
-  base?: Point
+  x: number,
+  y: number,
+  labelX: number
 ): Point {
   return {
-    x: branchX,
-    y: () => (base ? base.y() + pointSpace : pointSpace),
+    x,
+    y,
     label: commit.message,
     color: branch.color,
     labelX: labelX,
     draw: function () {
-      const y = this.y();
       return `${circleOfPoint(
         commit.hash,
         this.x,
@@ -288,18 +263,6 @@ function newPoint(
         commit.hash,
         this.label
       )}`;
-    },
-    x1: function () {
-      return this.x - 5;
-    },
-    x2: function () {
-      return this.x + 5;
-    },
-    y1: function () {
-      return this.y() - 5;
-    },
-    y2: function () {
-      return this.y() + 5;
     },
   };
 }
@@ -324,13 +287,15 @@ function textOfPoint(id: string, text: string) {
 
 function getSvg(test: string): string {
   const branchs = getBranches(test);
-  const drawables = parse(branchs);
-
+  const drawables = parse(branchs, 25, 25);
+  const commitSize = branchs.reduce((pre, curr) => pre + curr.commits.length, 0)
   return `<svg width='${
-    Math.max(...drawables.map((d) => d.x2())) + 250
+    branchs.length * 25 + 300
   }' height='${
-    Math.max(...drawables.map((d) => d.y2())) + 50
-  }' xmlns='http://www.w3.org/2000/svg'>\n  ${drawables.map((d) => d.draw()).join("\n  ")}\n</svg>`;
+    commitSize * 25 + 25
+  }' xmlns='http://www.w3.org/2000/svg'>\n  ${drawables
+    .map((d) => d.draw())
+    .join("\n  ")}\n</svg>`;
 }
 
 function randomColor(): string {
