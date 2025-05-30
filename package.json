@@ -3,9 +3,15 @@
   "version": "1.0.0",
   "description": "",
   "author": "whlit",
-  "license": "ISC",
-  "keywords": [],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/whlit/markdown-it-git-graph.git"
+  },
+  "keywords": ["markdown-it", "markdown-it-plugin", "git-graph"],
   "files": [
+    "LICENSE",
+    "README.md",
     "dist",
     "package.json"
   ],
