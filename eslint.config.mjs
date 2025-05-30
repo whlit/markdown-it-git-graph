@@ -1,7 +1,7 @@
 import antfu from '@antfu/eslint-config'
 
 export default antfu({
-  ignores: ['dist', '**/coverage', '**/__snapshots__/**'],
+  ignores: ['dist', '**/coverage', '**/__snapshots__/**', 'node_modules'],
   stylistic: {
     indent: 2,
     quotes: 'single',
