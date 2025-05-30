@@ -9,6 +9,20 @@
     "url": "https://github.com/whlit/markdown-it-git-graph.git"
   },
   "keywords": ["markdown-it", "markdown-it-plugin", "git-graph"],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/*.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/*.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
+  },
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
   "files": [
     "LICENSE",
     "README.md",
@@ -17,7 +31,9 @@
   ],
   "scripts": {
     "test": "vitest run",
-    "build": "tsc",
+    "build": "pnpm build:cjs && pnpm build:esm",
+    "build:esm": "tsc --project tsconfig.esm.json",
+    "build:cjs": "tsc --project tsconfig.cjs.json",
     "lint": "eslint --cache .",
     "lint:fix": "pnpm lint --fix"
   },

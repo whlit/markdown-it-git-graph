@@ -9,6 +9,7 @@
     "outDir": "./dist",
     "stripInternal": true,
     "esModuleInterop": true,
+    "removeComments": true,
     "skipLibCheck": true
   },
   "include": ["src/**/*.ts"],
