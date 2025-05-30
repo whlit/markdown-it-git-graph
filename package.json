@@ -1,7 +1,7 @@
 {
   "name": "markdown-it-git-graph",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.1.0",
+  "description": "一个markdown-it插件,用于生成git提交图",
   "author": "whlit",
   "license": "MIT",
   "repository": {
