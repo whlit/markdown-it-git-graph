@@ -231,7 +231,7 @@ function getSvg(idx: number, text: string, gitGraphOptions: MarkdownItGitGraphOp
         svg.height += svg.branchInfos.length * options.pointSpace
         branchInfos = svg.branchInfos.map(e => e.draw(svg.id, svg.options).trim()).filter(e => e.length > 0).join('\n')
       }
-      return `<svg width=${svg.width} height=${svg.height} xmlns='http://www.w3.org/2000/svg'>
+      return `<svg width='${svg.width}' height='${svg.height}' xmlns='http://www.w3.org/2000/svg'>
       ${svg.mergeLines.map(e => e.draw(id, options)).join('\n')}
       ${svg.commitLines.map(e => e.draw(id, options)).join('\n')}
       ${svg.commitPoints.map(e => e.draw(id, options)).join('\n')}

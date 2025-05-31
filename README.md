@@ -20,8 +20,8 @@ const md = new MarkdownIt()
 const svg = md.render(`\`\`\`git-graph
 [main]
 abc sonmething
-bbc 'do something'
-kqi<bai 'merge dev to main'
+bbc<kqj 'do something'
+kqi 'merge dev to main'
 [dev]
 kqj 'do something' 2
 bai 'do something2'
@@ -60,17 +60,19 @@ commit2 'this is a commit message' 2025-05-24
 
 ### 合并记录
 
-在`hash`段指定合并记录，格式为`hash1<hash2`，表示`hash1`所在的分支合并了`hash2`。 例如：下面的示例中，`mai`分支合并了`dev`分支的代码，创建了`kqi`这个合并记录。同时也表示`kqi`是由`bbc`和`bai`两个提交合并而来的。结果展示如上面的图所示。
+在`hash`段指定合并记录，格式为`hash1<hash2`，表示`hash1`所在的分支合并了`hash2`。 例如：下面的示例中，`main`分支合并了`dev`分支的代码，创建了`bbc`这个合并记录。同时也表示`bbc`是由`kqi`和`kqj`两个提交合并而来的。结果展示如图所示。
 
 ```git-graph
 [main]
 abc sonmething
-bbc 'do something'
-kqi<bai 'merge dev to main'
+bbc<kqj 'do something'
+kqi 'merge dev to main'
 [dev]
 kqj 'do something' 2
 bai 'do something2'
 ```
+
+![merge](docs/images/merge.svg)
 
 ### 新建分支
 
@@ -78,12 +80,19 @@ bai 'do something2'
 
 ```git-graph
 [main]
-abc sonmething
+abc sonmething 3
 bbc 'do something'
 kqi 'merge dev to main'
 [dev]
-kqj<bbc 'do something' 2
-bai 'do something2'
+kqj 'do something' 2
+bai<bbc 'do something2'
 ```
 
 ![merge](./docs/images/checkout.svg)
+
+## 配置
+
+| 参数 | 类型 | 描述 |
+| --- | --- | --- |
+| defaultBranchName | string | 默认分支名称 |
+| colors | string[] | 颜色列表,用于自定义分支颜色 |

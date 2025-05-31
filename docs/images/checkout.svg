@@ -1,12 +1,37 @@
-<svg width='350' height='150' xmlns='http://www.w3.org/2000/svg'>
-  <line x1="15" y1="137.5" x2="15" y2="125" stroke="#e6194b" stroke-width="2" />
-  <line x1="15" y1="125" x2="15" y2="100" stroke="#e6194b" stroke-width="2" />
-  <line x1="15" y1="100" x2="15" y2="75" stroke="#e6194b" stroke-width="2" />
-  <line x1="30" y1="50" x2="30" y2="25" stroke="#3cb44b" stroke-width="2" />
-  <path d="M 15 100 15 75 C 18 55 27 70 30 50" stroke="#e6194b" stroke-width="2" fill="none" />
-  <circle id="p-abc" cx="15" cy="125" r="5" fill="#e6194b" /> <path id="tp-0-abc" d="M 45 130 L 245 130"/> <text><textPath xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#tp-0-abc">abc sonmething</textPath></text>
-  <circle id="p-bbc" cx="15" cy="100" r="5" fill="#e6194b" /> <path id="tp-0-bbc" d="M 45 105 L 245 105"/> <text><textPath xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#tp-0-bbc">bbc 'do something'</textPath></text>
-  <circle id="p-kqi" cx="15" cy="75" r="5" fill="#e6194b" /> <path id="tp-0-kqi" d="M 45 80 L 245 80"/> <text><textPath xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#tp-0-kqi">kqi 'merge dev to main'</textPath></text>
-  <circle id="p-kqj" cx="30" cy="50" r="5" fill="#3cb44b" /> <path id="tp-0-kqj" d="M 45 55 L 245 55"/> <text><textPath xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#tp-0-kqj">kqj 'do something'</textPath></text>
-  <circle id="p-bai" cx="30" cy="25" r="5" fill="#3cb44b" /> <path id="tp-0-bai" d="M 45 30 L 245 30"/> <text><textPath xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#tp-0-bai">bai 'do something2'</textPath></text>
-</svg>
+<svg width='270' height='200' xmlns='http://www.w3.org/2000/svg'>
+      <path d="M 10 87.5 C 14 67.5 26 82.5 30 62.5" stroke="#e6194b" stroke-width="2" fill="none" />
+      <line x1="10" y1="125" x2="10" y2="112.5" stroke="#e6194b" stroke-width="2" />
+<line x1="10" y1="112.5" x2="10" y2="87.5" stroke="#e6194b" stroke-width="2" />
+<line x1="10" y1="87.5" x2="10" y2="12.5" stroke="#e6194b" stroke-width="2" />
+<line x1="30" y1="62.5" x2="30" y2="37.5" stroke="#3cb44b" stroke-width="2" />
+      <circle id="p-0-kqi" cx="10" cy="112.5" r="5" fill="#e6194b" />
+<circle id="p-0-bbc" cx="10" cy="87.5" r="5" fill="#e6194b" />
+<circle id="p-0-abc" cx="10" cy="12.5" r="5" fill="#e6194b" />
+<circle id="p-0-bai" cx="30" cy="62.5" r="5" fill="#3cb44b" />
+<circle id="p-0-kqj" cx="30" cy="37.5" r="5" fill="#3cb44b" />
+      <path id="tp-0-kqi" d="M 50 112.5 L 250 112.5"/><text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#tp-0-kqi">kqi merge dev to main</textPath></text>        
+<path id="tp-0-bbc" d="M 50 87.5 L 250 87.5"/><text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#tp-0-bbc">bbc do something</textPath></text>
+<path id="tp-0-abc" d="M 50 12.5 L 250 12.5"/><text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#tp-0-abc">abc sonmething</textPath></text>
+<path id="tp-0-bai" d="M 50 62.5 L 250 62.5"/><text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#tp-0-bai">bai do something2</textPath></text>
+<path id="tp-0-kqj" d="M 50 37.5 L 250 37.5"/><text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#tp-0-kqj">kqj do something</textPath></text>
+      <circle cx="10" cy="150" r="5" fill="#e6194b" />
+      <circle cx="30" cy="150" r="5" fill="#e6194b" />
+      <line x1="10" y1="150" x2="30" y2="150" stroke="#e6194b" stroke-width="2" />
+      <path id="bif-0-main" d="M 50 150 L 210 150"/>
+      <text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#bif-0-main">main</textPath></text>
+<circle cx="10" cy="175" r="5" fill="#3cb44b" />
+      <circle cx="30" cy="175" r="5" fill="#3cb44b" />
+      <line x1="10" y1="175" x2="30" y2="175" stroke="#3cb44b" stroke-width="2" />
+      <path id="bif-0-dev" d="M 50 175 L 210 175"/>
+      <text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#bif-0-dev">dev</textPath></text>
+      <line x1="0" y1="130" x2="270" y2="130" stroke="#dadce0" stroke-width="1" /><circle cx="10" cy="150" r="5" fill="#e6194b" />
+      <circle cx="30" cy="150" r="5" fill="#e6194b" />
+      <line x1="10" y1="150" x2="30" y2="150" stroke="#e6194b" stroke-width="2" />
+      <path id="bif-0-main" d="M 50 150 L 210 150"/>
+      <text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#bif-0-main">main</textPath></text>
+<circle cx="10" cy="175" r="5" fill="#3cb44b" />
+      <circle cx="30" cy="175" r="5" fill="#3cb44b" />
+      <line x1="10" y1="175" x2="30" y2="175" stroke="#3cb44b" stroke-width="2" />
+      <path id="bif-0-dev" d="M 50 175 L 210 175"/>
+      <text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#bif-0-dev">dev</textPath></text>
+      </svg>
