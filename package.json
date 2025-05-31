@@ -38,9 +38,10 @@
     "build": "pnpm build:cjs && pnpm build:esm",
     "build:esm": "tsc --project tsconfig.esm.json",
     "build:cjs": "tsc --project tsconfig.cjs.json",
-    "lint": "eslint --cache .",
+    "lint": "eslint .",
     "lint:fix": "pnpm lint --fix",
-    "postinstall": "simple-git-hooks"
+    "postinstall": "simple-git-hooks",
+    "watch": "watchify index.js -o bundle.js -v"
   },
   "peerDependencies": {
     "markdown-it": "^14.1.0"
@@ -56,7 +57,8 @@
     "markdown-it": "^14.1.0",
     "simple-git-hooks": "^2.13.0",
     "typescript": "^5.8.3",
-    "vitest": "^3.1.4"
+    "vitest": "^3.1.4",
+    "watchify": "^4.0.0"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint-staged && pnpm test"
