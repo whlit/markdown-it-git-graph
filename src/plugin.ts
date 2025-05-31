@@ -1,10 +1,10 @@
 import type { PluginWithOptions } from 'markdown-it'
-import type { Branch, Commit } from './git'
-import type { MarkdownItGitGraphOptions } from './options'
-import type { CommitMessage, Point, Svg } from './svg'
-import { parseBranch, parseCommit } from './git'
-import { defaultOptions } from './options'
-import { newBranchInfo, newCommitMessage, newDivider, newLine, newMergeLine, newPoint } from './svg'
+import type { Branch, Commit } from './git.js'
+import type { MarkdownItGitGraphOptions } from './options.js'
+import type { CommitMessage, Point, Svg } from './svg.js'
+import { parseBranch, parseCommit } from './git.js'
+import { defaultOptions } from './options.js'
+import { newBranchInfo, newCommitMessage, newDivider, newLine, newMergeLine, newPoint } from './svg.js'
 
 const GitGraphPlugin: PluginWithOptions<MarkdownItGitGraphOptions>
   = (md, gitGraphOptions: MarkdownItGitGraphOptions = defaultOptions) => {

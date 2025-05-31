@@ -1,4 +1,4 @@
-import type { Commit } from './git'
+import type { Commit } from './git.js'
 
 interface Drawable {
   draw: (id: string, options: Svg['options']) => string
