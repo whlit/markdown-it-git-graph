@@ -1,2 +1,2 @@
-export * from './options.js'
-export * from './plugin.js'
+export { defaultOptions, MarkdownItGitGraphOptions } from './options.js'
+export { gitGraphPlugin } from './plugin.js'
