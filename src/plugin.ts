@@ -4,7 +4,7 @@ import type { MarkdownItGitGraphOptions } from './options'
 import type { CommitMessage, Point, Svg } from './svg'
 import { parseBranch, parseCommit } from './git'
 import { defaultOptions } from './options'
-import { newCommitMessage, newLine, newMergeLine, newPoint } from './svg'
+import { newBranchInfo, newCommitMessage, newDivider, newLine, newMergeLine, newPoint } from './svg'
 
 const GitGraphPlugin: PluginWithOptions<MarkdownItGitGraphOptions>
   = (md, gitGraphOptions: MarkdownItGitGraphOptions = defaultOptions) => {
@@ -152,8 +152,10 @@ function addToSvg(branchs: Branch[], svg: Svg): void {
   const points: { [key: string]: Point } = {}
   for (let i = 0; i < branchs.length; i++) {
     const branch = branchs[i]
+    if (svg.options.drawBranchInfo) {
+      svg.branchInfos.push(newBranchInfo(padding.x, height + (i) * pointSpace, branch.name, branch.color))
+    }
     const lineX = i * svg.options.lineSpace + padding.x
-    let prePoint: Point | undefined
     for (let j = 0; j < branch.commits.length; j++) {
       const commit = branch.commits[j]
       // error: duplicate commit
@@ -171,21 +173,20 @@ function addToSvg(branchs: Branch[], svg: Svg): void {
       const commitMessage: CommitMessage = newCommitMessage(labelX, point.y, branch.color, commit)
       svg.commitMessages.push(commitMessage)
       // commit line
-      if (prePoint) {
-        svg.commitLines.push(newLine(prePoint, point, branch.color))
+      if (commit.base) {
+        svg.commitLines.push(newLine(points[commit.base], point, branch.color))
+      }
+      // 没有base也没有merge则需要画一条从底到此的线
+      else if (!commit.merge) {
+        svg.commitLines.push(newLine({
+          x: lineX,
+          y: height - pointSpace,
+        }, point, branch.color))
       }
       // has merge commit
       if (commit.merge) {
         mergeCommits.push(commit)
       }
-      prePoint = point
-    }
-    // 起始点没有合并，需要画到底的直线
-    if (!branch.commits[branch.commits.length - 1].merge && prePoint) {
-      svg.commitLines.push(newLine({
-        x: lineX,
-        y: height - padding.x,
-      }, prePoint, branch.color))
     }
   }
   // merge line
@@ -200,8 +201,8 @@ function addToSvg(branchs: Branch[], svg: Svg): void {
   })
 }
 
-function getSvg(idx: number, text: string, options: MarkdownItGitGraphOptions): string {
-  const branchs = getBranches(text, options)
+function getSvg(idx: number, text: string, gitGraphOptions: MarkdownItGitGraphOptions): string {
+  const branchs = getBranches(text, gitGraphOptions)
   const svg: Svg = {
     id: idx.toString(),
     width: 0,
@@ -211,6 +212,7 @@ function getSvg(idx: number, text: string, options: MarkdownItGitGraphOptions): 
       lineSpace: 20,
       pointRadius: 5,
       messageMaxLen: 200,
+      drawBranchInfo: true,
     },
     commitMessages: [],
     branchInfos: [],
@@ -218,15 +220,24 @@ function getSvg(idx: number, text: string, options: MarkdownItGitGraphOptions): 
     commitLines: [],
     mergeLines: [],
     errors: [],
-    draw: () => {
+    draw: (id: string, options: Svg['options']) => {
       if (svg.errors.length > 0) {
-        return `<svg width=300 height=100 xmlns='http://www.w3.org/2000/svg'>\n  ${svg.errors.map(e => e.draw(svg.id, svg.options)).join('\n')}\n</svg>`
+        return `<svg width=300 height=100 xmlns='http://www.w3.org/2000/svg'>\n  ${svg.errors.map(e => e.draw(id, options)).join('\n')}\n</svg>`
+      }
+      let divider = ''
+      let branchInfos = ''
+      if (options.drawBranchInfo) {
+        divider = newDivider(0, svg.height - options.pointSpace * 0.8, svg.width, '#dadce0').draw(id, options)
+        svg.height += svg.branchInfos.length * options.pointSpace
+        branchInfos = svg.branchInfos.map(e => e.draw(svg.id, svg.options).trim()).filter(e => e.length > 0).join('\n')
       }
       return `<svg width=${svg.width} height=${svg.height} xmlns='http://www.w3.org/2000/svg'>
-      ${svg.mergeLines.map(e => e.draw(svg.id, svg.options)).join('\n')}
-      ${svg.commitLines.map(e => e.draw(svg.id, svg.options)).join('\n')}
-      ${svg.commitPoints.map(e => e.draw(svg.id, svg.options)).join('\n')}
-      ${svg.commitMessages.map(e => e.draw(svg.id, svg.options)).join('\n')}
+      ${svg.mergeLines.map(e => e.draw(id, options)).join('\n')}
+      ${svg.commitLines.map(e => e.draw(id, options)).join('\n')}
+      ${svg.commitPoints.map(e => e.draw(id, options)).join('\n')}
+      ${svg.commitMessages.map(e => e.draw(id, options)).join('\n')}
+      ${svg.branchInfos.map(e => e.draw(id, options).trim()).filter(e => e.length > 0).join('\n')}
+      ${divider}${branchInfos}
       </svg>`
     },
   }
@@ -238,5 +249,5 @@ export {
   getBranches,
   getSortedCommits,
   getSvg,
-  GitGraphPlugin as gitGraphPlugin,
+  GitGraphPlugin,
 }

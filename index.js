@@ -1,5 +1,5 @@
 const md = require('markdown-it')()
-const plugin = require('./dist/cjs/index').gitGraphPlugin
+const plugin = require('./dist/cjs/index').GitGraphPlugin
 
 md.use(plugin)
 

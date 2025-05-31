@@ -17,8 +17,10 @@ type Line = Drawable & {
 type MergeLine = Line
 type CommitMessage = Drawable & {
   text: string
-  x: number
-  y: number
+  color: string
+}
+type BranchInfo = Drawable & {
+  name: string
   color: string
 }
 
@@ -31,12 +33,13 @@ type Svg = Drawable & {
     lineSpace: number
     pointRadius: number
     messageMaxLen: number
+    drawBranchInfo: boolean
   }
   commitPoints: Point[]
   commitMessages: CommitMessage[]
   commitLines: Line[]
   mergeLines: MergeLine[]
-  branchInfos: Drawable[]
+  branchInfos: BranchInfo[]
   errors: Drawable[]
 }
 
@@ -63,8 +66,6 @@ function newLine(from: Point | { x: number, y: number }, to: Point, color: strin
 function newCommitMessage(x: number, y: number, color: string, commit: Commit): CommitMessage {
   return {
     text: commit.message,
-    x,
-    y,
     color,
     draw: (id: string, options: Svg['options']) => {
       const commitMessageId = `tp-${id}-${commit.hash}`
@@ -91,12 +92,38 @@ function newMergeLine(from: Point, to: Point, color: string): MergeLine {
   }
 }
 
+function newBranchInfo(x: number, y: number, name: string, color: string): BranchInfo {
+  return {
+    name,
+    color,
+    draw: (id: string, options: Svg['options']) => {
+      const x2 = x + options.lineSpace
+      const infoId = `bif-${id}-${name}`
+      return `<circle cx="${x}" cy="${y}" r="${options.pointRadius}" fill="${color}" />
+      <circle cx="${x2}" cy="${y}" r="${options.pointRadius}" fill="${color}" />
+      <line x1="${x}" y1="${y}" x2="${x2}" y2="${y}" stroke="${color}" stroke-width="2" />
+      <path id="${infoId}" d="M ${x2 + options.lineSpace} ${y} L ${x + options.messageMaxLen} ${y}"/>
+      <text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#${infoId}">${name}</textPath></text>`
+    },
+  }
+}
+
+function newDivider(x: number, y: number, len: number, color: string): Drawable {
+  return {
+    draw: () => {
+      return `<line x1="${x}" y1="${y}" x2="${x + len}" y2="${y}" stroke="${color}" stroke-width="1" />`
+    },
+  }
+}
+
 export {
   CommitMessage,
   Drawable,
   Line,
   MergeLine,
+  newBranchInfo,
   newCommitMessage,
+  newDivider,
   newLine,
   newMergeLine,
   newPoint,

@@ -1,2 +1,2 @@
 export { defaultOptions, MarkdownItGitGraphOptions } from './options.js'
-export { gitGraphPlugin } from './plugin.js'
+export { GitGraphPlugin } from './plugin.js'
