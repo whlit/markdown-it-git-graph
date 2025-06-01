@@ -12,6 +12,6 @@
     "esModuleInterop": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "coverage"]
+  "include": ["src/**/*.ts", ".vitepress/**/*.{ts, mts}"],
+  "exclude": ["node_modules", "dist", "coverage", ".vitepress/cache"]
 }
