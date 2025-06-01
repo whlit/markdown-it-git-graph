@@ -3,6 +3,9 @@ import type { Commit } from './git.js'
 interface Drawable {
   draw: (id: string, options: Svg['options']) => string
 }
+interface Text {
+  text: (options: Svg['options']) => string
+}
 
 type Point = Drawable & {
   x: number
@@ -15,12 +18,11 @@ type Line = Drawable & {
   color: string
 }
 type MergeLine = Line
-type CommitMessage = Drawable & {
-  text: string
+
+type CommitMessage = Text & Drawable & {
   color: string
 }
-type BranchInfo = Drawable & {
-  name: string
+type BranchInfo = Text & Drawable & {
   color: string
 }
 
@@ -33,7 +35,11 @@ type Svg = Drawable & {
     lineSpace: number
     pointRadius: number
     messageMaxLen: number
-    drawBranchInfo: boolean
+    showBranchInfo: boolean
+    showHash: boolean
+    showDate: boolean
+    dateFormat: Intl.DateTimeFormatOptions
+    charWidth: number
   }
   commitPoints: Point[]
   commitMessages: CommitMessage[]
@@ -48,8 +54,10 @@ function newPoint(hash: string, x: number, y: number, color: string): Point {
     x,
     y,
     color,
-    draw: (id: string, options: Svg['options']) => `<circle id="p-${id}-${hash}" cx="${x}" cy="${y}" r="${options.pointRadius}" fill="${color}" />`,
-  }
+    draw(id: string, options: Svg['options']) {
+      return `<circle id="p-${id}-${hash}" cx="${this.x}" cy="${this.y}" r="${options.pointRadius}" fill="${this.color}" />`
+    },
+  } as Point
 }
 
 function newLine(from: Point | { x: number, y: number }, to: Point, color: string): Line {
@@ -57,19 +65,33 @@ function newLine(from: Point | { x: number, y: number }, to: Point, color: strin
     from,
     to,
     color,
-    draw: () => {
-      return `<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="${color}" stroke-width="2" />`
+    draw() {
+      return `<line x1="${this.from.x}" y1="${this.from.y}" x2="${this.to.x}" y2="${this.to.y}" stroke="${this.color}" stroke-width="2" />`
     },
   }
 }
 
 function newCommitMessage(x: number, y: number, color: string, commit: Commit): CommitMessage {
   return {
-    text: commit.message,
     color,
-    draw: (id: string, options: Svg['options']) => {
+    text: (options: Svg['options']) => {
+      let text = ''
+      if (text.length > 0) {
+        return text
+      }
+      if (options.showHash) {
+        text = `${commit.hash}   ${commit.message}`
+      }
+      if (options.showDate && commit.date > 0) {
+        const date = new Intl.DateTimeFormat(undefined, options.dateFormat).format(commit.date)
+        text = `${text}   ${date}`
+      }
+      return text
+    },
+    draw(id: string, options: Svg['options']) {
       const commitMessageId = `tp-${id}-${commit.hash}`
-      return `<path id="${commitMessageId}" d="M ${x} ${y} L ${x + options.messageMaxLen} ${y}"/><text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#${commitMessageId}">${commit.hash} ${commit.message}</textPath></text>`
+      const text = this.text(options)
+      return `<path id="${commitMessageId}" d="M ${x} ${y} L ${x + text.length * options.charWidth} ${y}"/><text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#${commitMessageId}">${text}</textPath></text>`
     },
   }
 }
@@ -79,30 +101,31 @@ function newMergeLine(from: Point, to: Point, color: string): MergeLine {
     from,
     to,
     color,
-    draw(id: string, options: Svg['options']) {
-      const flag = Math.abs(to.y - from.y) > options.pointSpace
-      const x1 = from.x
-      const y1 = to.y > from.y ? to.y - options.pointSpace : to.y + options.pointSpace
-      const x2 = to.x
-      const y2 = to.y
-      return `<path d="M ${from.x} ${from.y}${flag ? ` ${x1} ${y1}` : ''} C ${0.8 * x1 + 0.2 * x2
+    draw(_, options: Svg['options']) {
+      const flag = Math.abs(this.to.y - this.from.y) > options.pointSpace
+      const x1 = this.from.x
+      const y1 = this.to.y > this.from.y ? this.to.y - options.pointSpace : this.to.y + options.pointSpace
+      const x2 = this.to.x
+      const y2 = this.to.y
+      return `<path d="M ${this.from.x} ${this.from.y}${flag ? ` ${x1} ${y1}` : ''} C ${0.8 * x1 + 0.2 * x2
       } ${0.2 * y1 + 0.8 * y2} ${0.2 * x1 + 0.8 * x2} ${0.8 * y1 + 0.2 * y2
-      } ${x2} ${y2}" stroke="${color}" stroke-width="2" fill="none" />`
+      } ${x2} ${y2}" stroke="${this.color}" stroke-width="2" fill="none" />`
     },
   }
 }
 
 function newBranchInfo(x: number, y: number, name: string, color: string): BranchInfo {
   return {
-    name,
     color,
+    text: () => name,
     draw: (id: string, options: Svg['options']) => {
-      const x2 = x + options.lineSpace
+      const point2X = x + options.lineSpace
+      const textPathX = point2X + options.lineSpace
       const infoId = `bif-${id}-${name}`
       return `<circle cx="${x}" cy="${y}" r="${options.pointRadius}" fill="${color}" />
-      <circle cx="${x2}" cy="${y}" r="${options.pointRadius}" fill="${color}" />
-      <line x1="${x}" y1="${y}" x2="${x2}" y2="${y}" stroke="${color}" stroke-width="2" />
-      <path id="${infoId}" d="M ${x2 + options.lineSpace} ${y} L ${x + options.messageMaxLen} ${y}"/>
+      <circle cx="${point2X}" cy="${y}" r="${options.pointRadius}" fill="${color}" />
+      <line x1="${x}" y1="${y}" x2="${point2X}" y2="${y}" stroke="${color}" stroke-width="2" />
+      <path id="${infoId}" d="M ${textPathX} ${y} L ${textPathX + name.length * options.charWidth} ${y}"/>
       <text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#${infoId}">${name}</textPath></text>`
     },
   }
@@ -110,7 +133,7 @@ function newBranchInfo(x: number, y: number, name: string, color: string): Branc
 
 function newDivider(x: number, y: number, len: number, color: string): Drawable {
   return {
-    draw: () => {
+    draw() {
       return `<line x1="${x}" y1="${y}" x2="${x + len}" y2="${y}" stroke="${color}" stroke-width="1" />`
     },
   }

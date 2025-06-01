@@ -145,14 +145,12 @@ function addToSvg(branchs: Branch[], svg: Svg): void {
   }
   const labelX = branchs.length * svg.options.lineSpace + padding.x
   const height = (Object.keys(commitOrderMap).length + 1) * svg.options.pointSpace
-  svg.height += height
-  svg.width = Math.max(svg.width, labelX + svg.options.messageMaxLen + svg.options.lineSpace)
 
   const mergeCommits: Commit[] = []
   const points: { [key: string]: Point } = {}
   for (let i = 0; i < branchs.length; i++) {
     const branch = branchs[i]
-    if (svg.options.drawBranchInfo) {
+    if (svg.options.showBranchInfo) {
       svg.branchInfos.push(newBranchInfo(padding.x, height + (i) * pointSpace, branch.name, branch.color))
     }
     const lineX = i * svg.options.lineSpace + padding.x
@@ -197,7 +195,7 @@ function addToSvg(branchs: Branch[], svg: Svg): void {
     }
     const from = points[mergeCommit]
     const to = points[commit.hash]
-    svg.mergeLines.push(newMergeLine(from, to, from.color))
+    svg.mergeLines.push(newMergeLine(from, to, commit.base ? from.color : to.color))
   })
 }
 
@@ -212,7 +210,15 @@ function getSvg(idx: number, text: string, gitGraphOptions: MarkdownItGitGraphOp
       lineSpace: 20,
       pointRadius: 5,
       messageMaxLen: 200,
-      drawBranchInfo: true,
+      showBranchInfo: true,
+      showHash: true,
+      showDate: true,
+      dateFormat: {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      },
+      charWidth: 10,
     },
     commitMessages: [],
     branchInfos: [],
@@ -222,23 +228,24 @@ function getSvg(idx: number, text: string, gitGraphOptions: MarkdownItGitGraphOp
     errors: [],
     draw: (id: string, options: Svg['options']) => {
       if (svg.errors.length > 0) {
-        return `<svg width=300 height=100 xmlns='http://www.w3.org/2000/svg'>\n  ${svg.errors.map(e => e.draw(id, options)).join('\n')}\n</svg>`
+        return `<svg width=300 height=100 xmlns='http://www.w3.org/2000/svg'>
+        ${svg.errors.map(e => e.draw(id, options)).join('\n')}\n</svg>`
       }
-      let divider = ''
-      let branchInfos = ''
-      if (options.drawBranchInfo) {
-        divider = newDivider(0, svg.height - options.pointSpace * 0.8, svg.width, '#dadce0').draw(id, options)
-        svg.height += svg.branchInfos.length * options.pointSpace
-        branchInfos = svg.branchInfos.map(e => e.draw(svg.id, svg.options).trim()).filter(e => e.length > 0).join('\n')
-      }
-      return `<svg width='${svg.width}' height='${svg.height}' xmlns='http://www.w3.org/2000/svg'>
-      ${svg.mergeLines.map(e => e.draw(id, options)).join('\n')}
+      const width = svg.commitMessages.reduce((pre, cm) =>
+        Math.max(pre, cm.text(options).length * options.charWidth), 0) + branchs.length * options.lineSpace
+      const height = (svg.branchInfos.length + svg.commitPoints.length + 1) * options.pointSpace
+      let content = `${svg.mergeLines.map(e => e.draw(id, options)).join('\n')}
       ${svg.commitLines.map(e => e.draw(id, options)).join('\n')}
       ${svg.commitPoints.map(e => e.draw(id, options)).join('\n')}
-      ${svg.commitMessages.map(e => e.draw(id, options)).join('\n')}
-      ${svg.branchInfos.map(e => e.draw(id, options).trim()).filter(e => e.length > 0).join('\n')}
-      ${divider}${branchInfos}
-      </svg>`
+      ${svg.commitMessages.map(e => e.draw(id, options)).join('\n')}`
+      if (options.showBranchInfo) {
+        content += newDivider(0, height - options.pointSpace * (svg.branchInfos.length + 0.8), width, '#dadce0').draw(id, options)
+        const infos = svg.branchInfos.map(e => e.draw(id, options).trim()).filter(e => e.length > 0)
+        if (infos.length > 0) {
+          content += `<g>${infos.join('\n')}</g>`
+        }
+      }
+      return `<svg width='${width}' height='${height}' xmlns='http://www.w3.org/2000/svg'>${content}</svg>`
     },
   }
   addToSvg(branchs, svg)

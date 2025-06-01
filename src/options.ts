@@ -15,9 +15,9 @@ const defaultOptions: MarkdownItGitGraphOptions = {
   defaultBranchName: 'main',
   colors: [
     '#e6194b',
-    '#3cb44b',
     '#ffe119',
     '#4363d8',
+    '#3cb44b',
     '#f58231',
     '#911eb4',
     '#46f0f0',
