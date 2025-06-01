@@ -42,7 +42,6 @@
     "build:cjs": "tsc --project tsconfig.cjs.json",
     "lint": "eslint .",
     "lint:fix": "pnpm lint --fix",
-    "postinstall": "simple-git-hooks",
     "dev": "vitepress dev"
   },
   "peerDependencies": {
