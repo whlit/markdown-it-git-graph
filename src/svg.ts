@@ -70,8 +70,9 @@ function newCommitMessage(x: number, y: number, color: string, commit: Commit): 
       if (text.length > 0) {
         return text
       }
+      text = commit.message
       if (theme.showHash) {
-        text = `${commit.hash}   ${commit.message}`
+        text = `${commit.hash}   ${text}`
       }
       if (theme.showDate && commit.date > 0) {
         const date = new Intl.DateTimeFormat(undefined, theme.dateFormat).format(commit.date)
