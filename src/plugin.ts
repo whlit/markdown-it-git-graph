@@ -1,13 +1,14 @@
 import type { PluginWithOptions } from 'markdown-it'
 import type { Branch, Commit } from './git.js'
-import type { MarkdownItGitGraphOptions } from './options.js'
+import type { MarkdownItGitGraphOptions, RequiredOptions } from './options.js'
 import type { CommitMessage, Point, Svg } from './svg.js'
 import { parseBranch, parseCommit } from './git.js'
-import { defaultOptions } from './options.js'
+import { getOptions } from './options.js'
 import { newBranchInfo, newCommitMessage, newDivider, newLine, newMergeLine, newPoint } from './svg.js'
 
 const GitGraphPlugin: PluginWithOptions<MarkdownItGitGraphOptions>
-  = (md, gitGraphOptions: MarkdownItGitGraphOptions = defaultOptions) => {
+  = (md, options?: MarkdownItGitGraphOptions) => {
+    const gitGraphOptions = getOptions(options)
     const fence = md.renderer.rules.fence
     md.renderer.rules.fence = (
       tokens,
@@ -32,7 +33,8 @@ const GitGraphPlugin: PluginWithOptions<MarkdownItGitGraphOptions>
     }
   }
 
-function getBranches(text: string, options: MarkdownItGitGraphOptions): Branch[] {
+function getBranches(text: string, options: RequiredOptions): Branch[] {
+  const colors = options.theme.colors || []
   const rows = text
     .replace(/`/g, '')
     .replace(/\r\n/g, '\n')
@@ -47,8 +49,8 @@ function getBranches(text: string, options: MarkdownItGitGraphOptions): Branch[]
     }
     const branch = parseBranch(row)
     if (branch) {
-      if (branches.length < options.colors.length) {
-        branch.color = options.colors[branches.length]
+      if (branches.length < colors.length) {
+        branch.color = colors[branches.length]
       }
       branches.push(branch)
       continue
@@ -60,7 +62,7 @@ function getBranches(text: string, options: MarkdownItGitGraphOptions): Branch[]
     if (branches.length === 0) {
       branches.push({
         name: options.defaultBranchName,
-        color: options.colors[0],
+        color: colors[0],
         commits: [],
       })
     }
@@ -137,23 +139,23 @@ function addToSvg(branchs: Branch[], svg: Svg): void {
     commitOrderMap[commit.hash] = index
   })
 
-  const lineSpace = svg.options.lineSpace
-  const pointSpace = svg.options.pointSpace
+  const lineSpace = svg.theme.lineSpace
+  const pointSpace = svg.theme.pointSpace
   const padding = {
     x: lineSpace / 2,
     y: pointSpace / 2,
   }
-  const labelX = branchs.length * svg.options.lineSpace + padding.x
-  const height = (Object.keys(commitOrderMap).length + 1) * svg.options.pointSpace
+  const labelX = branchs.length * svg.theme.lineSpace + padding.x
+  const height = (Object.keys(commitOrderMap).length + 1) * svg.theme.pointSpace
 
   const mergeCommits: Commit[] = []
   const points: { [key: string]: Point } = {}
   for (let i = 0; i < branchs.length; i++) {
     const branch = branchs[i]
-    if (svg.options.showBranchInfo) {
+    if (svg.theme.showBranchInfo) {
       svg.branchInfos.push(newBranchInfo(padding.x, height + (i) * pointSpace, branch.name, branch.color))
     }
-    const lineX = i * svg.options.lineSpace + padding.x
+    const lineX = i * svg.theme.lineSpace + padding.x
     for (let j = 0; j < branch.commits.length; j++) {
       const commit = branch.commits[j]
       // error: duplicate commit
@@ -199,34 +201,20 @@ function addToSvg(branchs: Branch[], svg: Svg): void {
   })
 }
 
-function getSvg(idx: number, text: string, gitGraphOptions: MarkdownItGitGraphOptions): string {
-  const branchs = getBranches(text, gitGraphOptions)
+function getSvg(idx: number, text: string, options: RequiredOptions): string {
+  const branchs = getBranches(text, options)
   const svg: Svg = {
     id: idx.toString(),
     width: 0,
     height: 0,
-    options: {
-      pointSpace: 25,
-      lineSpace: 20,
-      pointRadius: 5,
-      messageMaxLen: 200,
-      showBranchInfo: true,
-      showHash: true,
-      showDate: true,
-      dateFormat: {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      },
-      charWidth: 10,
-    },
+    theme: options.theme,
     commitMessages: [],
     branchInfos: [],
     commitPoints: [],
     commitLines: [],
     mergeLines: [],
     errors: [],
-    draw: (id: string, options: Svg['options']) => {
+    draw: (id: string, options: Svg['theme']) => {
       if (svg.errors.length > 0) {
         return `<svg width=300 height=100 xmlns='http://www.w3.org/2000/svg'>
         ${svg.errors.map(e => e.draw(id, options)).join('\n')}\n</svg>`
@@ -249,7 +237,7 @@ function getSvg(idx: number, text: string, gitGraphOptions: MarkdownItGitGraphOp
     },
   }
   addToSvg(branchs, svg)
-  return svg.draw(svg.id, svg.options)
+  return svg.draw(svg.id, svg.theme)
 }
 
 export {

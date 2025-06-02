@@ -1,11 +1,11 @@
 import type { MarkdownItGitGraphOptions } from '../options'
 import { expect, it } from 'vitest'
 import { parseCommit } from '../git'
-import { defaultOptions } from '../options'
+import { getOptions } from '../options'
 import { getBranches } from '../plugin'
 
-function branchesTester(text: string, options: MarkdownItGitGraphOptions = defaultOptions) {
-  const branches = getBranches(text, options)
+function branchesTester(text: string, options?: MarkdownItGitGraphOptions) {
+  const branches = getBranches(text, getOptions(options))
   const expects = {
     branchSizeToBe: (len: number) => {
       expect(branches.length).toBe(len)

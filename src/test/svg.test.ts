@@ -2,7 +2,11 @@ import MarkdownIt from 'markdown-it'
 import { expect, it } from 'vitest'
 import { GitGraphPlugin } from '../plugin'
 
-const md = MarkdownIt().use(GitGraphPlugin)
+const md = MarkdownIt().use(GitGraphPlugin, {
+  theme: {
+    pointSpace: 80,
+  },
+})
 
 it('test', async () => {
   const svg = md.render(`\`\`\`git-graph
