@@ -7,14 +7,13 @@ settings:
 importers:
 
   .:
-    dependencies:
-      '@types/markdown-it':
-        specifier: ^14.1.2
-        version: 14.1.2
     devDependencies:
       '@antfu/eslint-config':
         specifier: ^4.13.2
         version: 4.13.2(@vue/compiler-sfc@3.5.16)(eslint@9.27.0)(typescript@5.8.3)(vitest@3.1.4(@types/debug@4.1.12)(@types/node@22.15.24)(yaml@2.8.0))
+      '@types/markdown-it':
+        specifier: ^14.1.2
+        version: 14.1.2
       '@vitest/coverage-v8':
         specifier: 3.1.4
         version: 3.1.4(vitest@3.1.4(@types/debug@4.1.12)(@types/node@22.15.24)(yaml@2.8.0))
