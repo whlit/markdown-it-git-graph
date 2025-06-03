@@ -1,8 +1,8 @@
-import type { MarkdownItGitGraphOptions } from '../options'
+import type { MarkdownItGitGraphOptions } from '../src/options'
 import { expect, it } from 'vitest'
-import { parseCommit } from '../git'
-import { getOptions } from '../options'
-import { getBranches } from '../plugin'
+import { parseCommit } from '../src/git'
+import { getOptions } from '../src/options'
+import { getBranches } from '../src/plugin'
 
 function branchesTester(text: string, options?: MarkdownItGitGraphOptions) {
   const branches = getBranches(text, getOptions(options))
