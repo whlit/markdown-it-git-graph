@@ -1,5 +1,5 @@
 import type { Commit } from './git.js'
-import type { RequiredTheme } from './options.js'
+import type { RequiredSvgTheme } from './options.js'
 
 interface Drawable {
   draw: (id: string, theme: Svg['theme']) => string
@@ -31,7 +31,7 @@ type Svg = Drawable & {
   id: string
   width: number
   height: number
-  theme: RequiredTheme
+  theme: RequiredSvgTheme
   commitPoints: Point[]
   commitMessages: CommitMessage[]
   commitLines: Line[]

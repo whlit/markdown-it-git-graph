@@ -136,6 +136,6 @@ export {
   MarkdownItGitGraphOptions,
   parseTheme,
   RequiredOptions,
-  RequiredSvgTheme as RequiredTheme,
+  RequiredSvgTheme,
   SvgTheme,
 }

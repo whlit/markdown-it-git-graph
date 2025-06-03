@@ -101,5 +101,61 @@ bai<bbc 'do something2'
 
 | 参数 | 类型 | 描述 |
 | --- | --- | --- |
-| defaultBranchName | string | 默认分支名称 |
-| colors | string[] | 颜色列表,用于自定义分支颜色 |
+| defaultBranchName    | string                      | 默认分支名称                                          |
+| theme                | SvgTheme                    | Svg主题设置                                          |
+| theme.colors         | string[]                    | 颜色列表，优先使用的颜色列表，分支数超出时，使用随机颜色  |
+| theme.pointSpace     | number                      | 点间距，默认 25                                       |
+| theme.pointRadius    | number                      | 点半径，默认 5                                        |
+| theme.lineWidth      | number                      | 分支线间距，默认 20                                   |
+| theme.showHash       | boolean                     | 是否显示 hash                                        |
+| theme.showDate       | boolean                     | 是否显示日期                                          |
+| theme.showBranchInfo | boolean                     | 是否显示分支信息                                      |
+| theme.charWidth      | number                      | 字符宽度，默认 10, 用于非精确计算字符串长度             |
+| theme.dateFormat     | Intl.DateTimeFormatOptions  | 日期格式                                             |
+
+### 全局配置 
+
+```ts
+const md = MarkdownIt().use(GitGraphPlugin, {
+  defaultBranchName: 'dev',
+  theme: {
+    colors: [
+      '#008080',
+      '#e6beff',
+      'blue',
+      'red'
+    ],
+    pointSpace: 30,
+    lineSpace: 25,
+    pointRadius: 7,
+    showBranchInfo: true,
+    showHash: true,
+    showDate: true,
+    dateFormat: {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    },
+    charWidth: 12
+  }
+})
+```
+
+### 局部配置 
+
+对于每个图块，可以在其内部添加配置项。配置项对于该图块有效，将覆盖全局配置。
+
+````
+```git-graph colors=#e6194b,#ffe119&showHash=false&showDate=false
+[main]
+8991ab29<ab315c05   'merge feature/dev_1'    2025-02-05
+9091ab29            'add help.md'            2025-02-03
+d920f7c1            'add README.md'          2025-02-01
+[feature/dev_1]
+ab315c05            'update index.md'        2025-02-03
+910f0f0f            'something'              2025-02-03
+0c5c0c05<d920f7c1   'add index.md'           2025-02-02
+```
+````
+
+![config](docs/public/config.svg)
