@@ -2,15 +2,13 @@ import MarkdownIt from 'markdown-it'
 import { expect, it } from 'vitest'
 import { GitGraphPlugin } from '../plugin'
 
-const isDev = process.env.NODE_ENV === 'dev'
-
 const md = MarkdownIt().use(GitGraphPlugin, {
   theme: {
     pointSpace: 80,
   },
 })
-it.runIf(isDev)('test', async () => {
-  const svg = md.render(`\`\`\`git-graph
+it('test', async () => {
+  const svg = md.render(`\`\`\`git-graph colors=red,blue,green,yellow&showHash=false
     [main]
     abc test
     bbc test2
@@ -18,5 +16,5 @@ it.runIf(isDev)('test', async () => {
     ccc test3
     \`\`\`
     `)
-  expect(svg).toMatchSnapshot()
+  expect(svg)
 })

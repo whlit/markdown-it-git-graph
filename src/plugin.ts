@@ -3,7 +3,7 @@ import type { Branch, Commit } from './git.js'
 import type { MarkdownItGitGraphOptions, RequiredOptions } from './options.js'
 import type { CommitMessage, Point, Svg } from './svg.js'
 import { parseBranch, parseCommit } from './git.js'
-import { getOptions } from './options.js'
+import { getOptions, parseTheme } from './options.js'
 import { newBranchInfo, newCommitMessage, newDivider, newLine, newMergeLine, newPoint } from './svg.js'
 
 const GitGraphPlugin: PluginWithOptions<MarkdownItGitGraphOptions>
@@ -21,7 +21,19 @@ const GitGraphPlugin: PluginWithOptions<MarkdownItGitGraphOptions>
       const language = token.info.trim()
 
       if (language.startsWith('git-graph')) {
-        return getSvg(idx, token.content, gitGraphOptions)
+        const theme = language.length > 9
+          ? {
+              ...gitGraphOptions.theme,
+              ...parseTheme(language.slice(9)),
+            }
+          : {
+              ...gitGraphOptions.theme,
+            }
+        const opt = {
+          ...gitGraphOptions,
+          theme,
+        }
+        return getSvg(idx, token.content, opt)
       }
       return fence?.(
         tokens,
