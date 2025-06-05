@@ -4,32 +4,26 @@ interface Commit {
   date: number
   base?: string
   merge?: string
-  branch?: Branch
+  branch: Branch
 }
 
 interface Branch {
   name: string
-  color: string
   commits: Commit[]
 }
 
 const branchRegex = /^\[.*\]/
 
-function randomColor(): string {
-  return `#${Math.floor(Math.random() * 16777215).toString(16)}`
-}
-
 function parseBranch(row: string): Branch | undefined {
   if (branchRegex.test(row)) {
     return {
       name: row.substring(1, row.indexOf(']')),
-      color: randomColor(),
       commits: [],
     }
   }
 }
 
-function parseCommit(row: string): Commit | undefined {
+function parseCommit(row: string, branch: Branch): Commit | undefined {
   const cells = toCells(row)
   if (cells.length < 2) {
     return
@@ -38,6 +32,7 @@ function parseCommit(row: string): Commit | undefined {
     hash: cells[0],
     message: cells[1],
     date: 0,
+    branch,
   }
   if (cells.length > 2) {
     const date = Date.parse(cells[2])
@@ -54,7 +49,15 @@ function parseCommit(row: string): Commit | undefined {
     }
     commit.merge = strs[1] && strs[1].length > 0 ? strs[1] : undefined
   }
-  return commit.hash.trim().length > 0 ? commit : undefined
+  if (commit.hash.trim().length <= 0) {
+    return
+  }
+  // 默认为上一个提交的base
+  if (commit.branch.commits.length > 0) {
+    commit.branch.commits[commit.branch.commits.length - 1].base = commit.hash
+  }
+  branch.commits.push(commit)
+  return commit
 }
 
 function toCells(row: string): string[] {
@@ -91,9 +94,99 @@ function toCells(row: string): string[] {
   return cells.map(v => v.trim()).filter(v => v.length > 0)
 }
 
+function getBranches(text: string, defaultBranchName: string): Branch[] {
+  const rows = text
+    .replace(/`/g, '')
+    .replace(/\r\n/g, '\n')
+    .trim()
+    .split('\n')
+  const branches: Branch[] = []
+  const commitMap: { [key: string]: Commit } = {}
+  for (let row of rows) {
+    row = row.replace(/\\s/g, '').trim()
+    if (row === '') {
+      continue
+    }
+    const branch = parseBranch(row)
+    if (branch !== undefined) {
+      branches.push(branch)
+      continue
+    }
+    if (branches.length === 0) {
+      branches.push({
+        name: defaultBranchName,
+        commits: [],
+      })
+    }
+    const commit = parseCommit(row, branches[branches.length - 1])
+    if (commit === undefined) {
+      continue
+    }
+    commitMap[commit.hash] = commit
+  }
+  // 以id 排序
+  branches.forEach(branch => branch.commits.reverse())
+  // 清除不规范的merge
+  Object.keys(commitMap).forEach((hash) => {
+    const commit = commitMap[hash]
+    if (commit.merge && !commitMap[commit.merge]) {
+      commit.merge = undefined
+    }
+  })
+  return branches
+}
+
+function getSortedCommits(branchs: Branch[]): Commit[] {
+  const commitMap: { [key: string]: Commit } = {}
+  const commits: Commit[] = []
+  const count = branchs.reduce((sum, branch) => sum + branch.commits.length, 0)
+  const branchLoopIdxs: number[] = Array.from({
+    length: branchs.length,
+  }, () => 0)
+  while (commits.length < count) {
+    let bi: number = -1
+    for (let i = 0; i < branchs.length; i++) {
+      const branch = branchs[i]
+      const j = branchLoopIdxs[i]
+      if (j >= branch.commits.length) {
+        continue
+      }
+      if (bi < 0) {
+        bi = i
+        continue
+      }
+      const pre = branchs[bi].commits[branchLoopIdxs[bi]]
+      // pre 存在 merge 并且 merge 的commit未处理，则优先处理当前
+      if (pre.merge && !commitMap[pre.merge]) {
+        bi = i
+        continue
+      }
+      const curr = branch.commits[j]
+      // 当前存在merge，并且merge的commit未处理，则跳过
+      if (curr.merge && !commitMap[curr.merge]) {
+        continue
+      }
+      // 按时间排序
+      if (curr.date < pre.date) {
+        bi = i
+      }
+    }
+    if (bi < 0) {
+      break
+    }
+    const commit = branchs[bi].commits[branchLoopIdxs[bi]]
+    commits.push(commit)
+    commitMap[commit.hash] = commit
+    branchLoopIdxs[bi]++
+  }
+  return commits.reverse()
+}
+
 export {
   Branch,
   Commit,
+  getBranches,
+  getSortedCommits,
   parseBranch,
   parseCommit,
 }

@@ -34,7 +34,8 @@ c72b76ef            'init repo'              2025-02-01
 [feature/dev_1]
 ab315c05            'update index.md'        2025-02-03
 910f0f0f            'something'              2025-02-03
-0c5c0c05<d920f7c1   'add index.md'           2025-02-02
+0c5c0c05<d920f7c1   'merge main'           2025-02-02
+892jiskg<c72b76ef   'kkg'                    2025-02-01
 [feature/dev_2]
 872ac0c0            'do something'           2025-02-08
 bb38a909            'do something'           2025-02-02

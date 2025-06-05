@@ -15,34 +15,5 @@ ab315c05            'update index.md'        2025-02-03
 0c5c0c05<d920f7c1   'add index.md'           2025-02-02
     \`\`\`
     `)
-  expect(svg).toMatchInlineSnapshot(`
-    "<svg width='230' height='225' xmlns='http://www.w3.org/2000/svg'><path d="M 30 37.5 C 26 17.5 14 32.5 10 12.5" stroke="#ffe119" stroke-width="2" fill="none" />
-    <path d="M 10 137.5 C 14 117.5 26 132.5 30 112.5" stroke="#ffe119" stroke-width="2" fill="none" />
-          <line x1="10" y1="150" x2="10" y2="137.5" stroke="#e6194b" stroke-width="2" />
-    <line x1="10" y1="137.5" x2="10" y2="87.5" stroke="#e6194b" stroke-width="2" />
-    <line x1="10" y1="87.5" x2="10" y2="12.5" stroke="#e6194b" stroke-width="2" />
-    <line x1="30" y1="112.5" x2="30" y2="62.5" stroke="#ffe119" stroke-width="2" />
-    <line x1="30" y1="62.5" x2="30" y2="37.5" stroke="#ffe119" stroke-width="2" />
-          <circle id="p-0-d920f7c1" cx="10" cy="137.5" r="5" fill="#e6194b" />
-    <circle id="p-0-9091ab29" cx="10" cy="87.5" r="5" fill="#e6194b" />
-    <circle id="p-0-8991ab29" cx="10" cy="12.5" r="5" fill="#e6194b" />
-    <circle id="p-0-0c5c0c05" cx="30" cy="112.5" r="5" fill="#ffe119" />
-    <circle id="p-0-910f0f0f" cx="30" cy="62.5" r="5" fill="#ffe119" />
-    <circle id="p-0-ab315c05" cx="30" cy="37.5" r="5" fill="#ffe119" />
-          <path id="tp-0-d920f7c1" d="M 50 137.5 L 180 137.5"/><text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#tp-0-d920f7c1">add README.md</textPath></text>
-    <path id="tp-0-9091ab29" d="M 50 87.5 L 160 87.5"/><text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#tp-0-9091ab29">add help.md</textPath></text>
-    <path id="tp-0-8991ab29" d="M 50 12.5 L 240 12.5"/><text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#tp-0-8991ab29">merge feature/dev_1</textPath></text>
-    <path id="tp-0-0c5c0c05" d="M 50 112.5 L 170 112.5"/><text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#tp-0-0c5c0c05">add index.md</textPath></text>
-    <path id="tp-0-910f0f0f" d="M 50 62.5 L 140 62.5"/><text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#tp-0-910f0f0f">something</textPath></text>
-    <path id="tp-0-ab315c05" d="M 50 37.5 L 200 37.5"/><text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#tp-0-ab315c05">update index.md</textPath></text><line x1="0" y1="155" x2="230" y2="155" stroke="#dadce0" stroke-width="1" /><g><circle cx="10" cy="175" r="5" fill="#e6194b" />
-          <circle cx="30" cy="175" r="5" fill="#e6194b" />
-          <line x1="10" y1="175" x2="30" y2="175" stroke="#e6194b" stroke-width="2" />
-          <path id="bif-0-main" d="M 50 175 L 90 175"/>
-          <text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#bif-0-main">main</textPath></text>
-    <circle cx="10" cy="200" r="5" fill="#ffe119" />
-          <circle cx="30" cy="200" r="5" fill="#ffe119" />
-          <line x1="10" y1="200" x2="30" y2="200" stroke="#ffe119" stroke-width="2" />
-          <path id="bif-0-feature/dev_1" d="M 50 200 L 180 200"/>
-          <text><textPath baseline-shift="-27%" xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#bif-0-feature/dev_1">feature/dev_1</textPath></text></g></svg>"
-  `)
+  expect(svg).toMatchInlineSnapshot(`"<svg width='40' height='175' xmlns='http://www.w3.org/2000/svg'><path d="M 30 37.5 C 26 17.5 14 32.5 10 12.5" stroke="#ffe119" stroke-width="2" fill="none" /><path d="M 10 137.5 C 14 117.5 26 132.5 30 112.5" stroke="#ffe119" stroke-width="2" fill="none" /><line x1="10" y1="87.5" x2="10" y2="12.5" stroke="#e6194b" stroke-width="2" /><line x1="30" y1="62.5" x2="30" y2="37.5" stroke="#ffe119" stroke-width="2" /><line x1="30" y1="112.5" x2="30" y2="62.5" stroke="#ffe119" stroke-width="2" /><line x1="10" y1="137.5" x2="10" y2="87.5" stroke="#e6194b" stroke-width="2" /><line x1="10" y1="150" x2="10" y2="137.5" stroke="#e6194b" stroke-width="2" /><circle id="p-0-8991ab29" cx="10" cy="12.5" r="5" fill="#e6194b" /><circle id="p-0-ab315c05" cx="30" cy="37.5" r="5" fill="#ffe119" /><circle id="p-0-910f0f0f" cx="30" cy="62.5" r="5" fill="#ffe119" /><circle id="p-0-9091ab29" cx="10" cy="87.5" r="5" fill="#e6194b" /><circle id="p-0-0c5c0c05" cx="30" cy="112.5" r="5" fill="#ffe119" /><circle id="p-0-d920f7c1" cx="10" cy="137.5" r="5" fill="#e6194b" /></svg>"`)
 })

@@ -1,11 +1,10 @@
 import type { MarkdownItGitGraphOptions } from '../src/options'
 import { expect, it } from 'vitest'
-import { parseCommit } from '../src/git'
+import { getBranches, parseCommit } from '../src/git'
 import { getOptions } from '../src/options'
-import { getBranches } from '../src/plugin'
 
 function branchesTester(text: string, options?: MarkdownItGitGraphOptions) {
-  const branches = getBranches(text, getOptions(options))
+  const branches = getBranches(text, getOptions(options).defaultBranchName)
   const expects = {
     branchSizeToBe: (len: number) => {
       expect(branches.length).toBe(len)
@@ -28,7 +27,11 @@ function branchesTester(text: string, options?: MarkdownItGitGraphOptions) {
 }
 
 function commitTester(text: string) {
-  const commit = parseCommit(text)
+  const commit = parseCommit(text, {
+    name: 'main',
+    commits: [],
+
+  })
   const expects = {
     isUndefined: () => {
       expect(commit).toBeUndefined()
@@ -66,7 +69,7 @@ it('branch-simple', async () => {
   // 自定义名称
   tester('[kjkj]', 'kjkj')
   // 无名称, 同时也不符合commit格式
-  tester('kjkj', '', 0)
+  tester('kjkj', 'main', 1)
   // 特殊
   tester('[main] [kjkj]', 'main', 1)
   tester('[main]jkj]', 'main', 1)

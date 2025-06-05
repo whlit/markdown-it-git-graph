@@ -1,10 +1,8 @@
 import type { PluginWithOptions } from 'markdown-it'
-import type { Branch, Commit } from './git.js'
 import type { MarkdownItGitGraphOptions, RequiredOptions } from './options.js'
-import type { CommitMessage, Point, Svg } from './svg.js'
-import { parseBranch, parseCommit } from './git.js'
+import { getBranches } from './git.js'
 import { getOptions, parseTheme } from './options.js'
-import { newBranchInfo, newCommitMessage, newDivider, newLine, newMergeLine, newPoint } from './svg.js'
+import { getSvg } from './svg.js'
 
 const GitGraphPlugin: PluginWithOptions<MarkdownItGitGraphOptions>
   = (md, options?: MarkdownItGitGraphOptions) => {
@@ -33,7 +31,7 @@ const GitGraphPlugin: PluginWithOptions<MarkdownItGitGraphOptions>
           ...gitGraphOptions,
           theme,
         }
-        return getSvg(idx, token.content, opt)
+        return parse(idx, token.content, opt)
       }
       return fence?.(
         tokens,
@@ -45,216 +43,10 @@ const GitGraphPlugin: PluginWithOptions<MarkdownItGitGraphOptions>
     }
   }
 
-function getBranches(text: string, options: RequiredOptions): Branch[] {
-  const colors = options.theme.colors || []
-  const rows = text
-    .replace(/`/g, '')
-    .replace(/\r\n/g, '\n')
-    .trim()
-    .split('\n')
-  const branches: Branch[] = []
-  const commitMap: { [key: string]: Commit } = {}
-  for (let row of rows) {
-    row = row.replace(/\\s/g, '').trim()
-    if (row === '') {
-      continue
-    }
-    const branch = parseBranch(row)
-    if (branch) {
-      if (branches.length < colors.length) {
-        branch.color = colors[branches.length]
-      }
-      branches.push(branch)
-      continue
-    }
-    const commit = parseCommit(row)
-    if (!commit) {
-      continue
-    }
-    if (branches.length === 0) {
-      branches.push({
-        name: options.defaultBranchName,
-        color: colors[0],
-        commits: [],
-      })
-    }
-    commit.branch = branches[branches.length - 1]
-    // 默认为上一个提交的base
-    if (commit.branch.commits.length > 0) {
-      commit.branch.commits[commit.branch.commits.length - 1].base = commit.hash
-    }
-    commit.branch.commits.push(commit)
-    commitMap[commit.hash] = commit
-  }
-  // 以id 排序
-  branches.forEach(branch => branch.commits.reverse())
-  // 清除不规范的merge
-  Object.keys(commitMap).forEach((hash) => {
-    const commit = commitMap[hash]
-    if (commit.merge && !commitMap[commit.merge]) {
-      commit.merge = undefined
-    }
-  })
-  return branches
+function parse(idx: number, content: string, options: RequiredOptions): string {
+  const branches = getBranches(content, options.defaultBranchName)
+  const svg = getSvg(idx, branches, options)
+  return svg.draw(svg.id, options.theme)
 }
 
-function getSortedCommits(branchs: Branch[]): Commit[] {
-  const commitMap: { [key: string]: Commit } = {}
-  const commits: Commit[] = []
-  const count = branchs.reduce((sum, branch) => sum + branch.commits.length, 0)
-  const branchLoopIdxs: number[] = Array.from({
-    length: branchs.length,
-  }, () => 0)
-  while (commits.length < count) {
-    let bi: number = -1
-    for (let i = 0; i < branchs.length; i++) {
-      const branch = branchs[i]
-      const j = branchLoopIdxs[i]
-      if (j >= branch.commits.length) {
-        continue
-      }
-      if (bi < 0) {
-        bi = i
-        continue
-      }
-      const pre = branchs[bi].commits[branchLoopIdxs[bi]]
-      // pre 存在 merge 并且 merge 的commit未处理，则优先处理当前
-      if (pre.merge && !commitMap[pre.merge]) {
-        bi = i
-        continue
-      }
-      const curr = branch.commits[j]
-      // 当前存在merge，并且merge的commit未处理，则跳过
-      if (curr.merge && !commitMap[curr.merge]) {
-        continue
-      }
-      // 按时间排序
-      if (curr.date < pre.date) {
-        bi = i
-      }
-    }
-    if (bi < 0) {
-      break
-    }
-    const commit = branchs[bi].commits[branchLoopIdxs[bi]]
-    commits.push(commit)
-    commitMap[commit.hash] = commit
-    branchLoopIdxs[bi]++
-  }
-  return commits.reverse()
-}
-
-function addToSvg(branchs: Branch[], svg: Svg): void {
-  const commits = getSortedCommits(branchs)
-  const commitOrderMap: { [key: string]: number } = {}
-  commits.forEach((commit, index) => {
-    commitOrderMap[commit.hash] = index
-  })
-
-  const lineSpace = svg.theme.lineSpace
-  const pointSpace = svg.theme.pointSpace
-  const padding = {
-    x: lineSpace / 2,
-    y: pointSpace / 2,
-  }
-  const labelX = branchs.length * svg.theme.lineSpace + padding.x
-  const height = (Object.keys(commitOrderMap).length + 1) * svg.theme.pointSpace
-
-  const mergeCommits: Commit[] = []
-  const points: { [key: string]: Point } = {}
-  for (let i = 0; i < branchs.length; i++) {
-    const branch = branchs[i]
-    if (svg.theme.showBranchInfo) {
-      svg.branchInfos.push(newBranchInfo(padding.x, height + (i) * pointSpace, branch.name, branch.color))
-    }
-    const lineX = i * svg.theme.lineSpace + padding.x
-    for (let j = 0; j < branch.commits.length; j++) {
-      const commit = branch.commits[j]
-      // error: duplicate commit
-      if (points[commit.hash]) {
-        svg.errors.push({
-          draw: () => `<text x="${lineSpace}" y="${pointSpace}"><tspan font-weight="bold" fill="red">提交记录的hash[${commit.hash}]重复</tspan></text>`,
-        })
-        continue
-      }
-      // new point
-      const point = newPoint(commit.hash, lineX, commitOrderMap[commit.hash] * pointSpace + padding.y, branch.color)
-      svg.commitPoints.push(point)
-      points[commit.hash] = point
-      // commit message
-      const commitMessage: CommitMessage = newCommitMessage(labelX, point.y, branch.color, commit)
-      svg.commitMessages.push(commitMessage)
-      // commit line
-      if (commit.base) {
-        svg.commitLines.push(newLine(points[commit.base], point, branch.color))
-      }
-      // 没有base也没有merge则需要画一条从底到此的线
-      else if (!commit.merge) {
-        svg.commitLines.push(newLine({
-          x: lineX,
-          y: height - pointSpace,
-        }, point, branch.color))
-      }
-      // has merge commit
-      if (commit.merge) {
-        mergeCommits.push(commit)
-      }
-    }
-  }
-  // merge line
-  mergeCommits.forEach((commit) => {
-    const mergeCommit = commit.merge
-    if (!mergeCommit || !points[mergeCommit] || !commit.branch) {
-      return
-    }
-    const from = points[mergeCommit]
-    const to = points[commit.hash]
-    svg.mergeLines.push(newMergeLine(from, to, commit.base ? from.color : to.color))
-  })
-}
-
-function getSvg(idx: number, text: string, options: RequiredOptions): string {
-  const branchs = getBranches(text, options)
-  const svg: Svg = {
-    id: idx.toString(),
-    width: 0,
-    height: 0,
-    theme: options.theme,
-    commitMessages: [],
-    branchInfos: [],
-    commitPoints: [],
-    commitLines: [],
-    mergeLines: [],
-    errors: [],
-    draw: (id: string, options: Svg['theme']) => {
-      if (svg.errors.length > 0) {
-        return `<svg width=300 height=100 xmlns='http://www.w3.org/2000/svg'>
-        ${svg.errors.map(e => e.draw(id, options)).join('\n')}\n</svg>`
-      }
-      const width = svg.commitMessages.reduce((pre, cm) =>
-        Math.max(pre, cm.text(options).length * options.charWidth), 0) + branchs.length * options.lineSpace
-      const height = (svg.branchInfos.length + svg.commitPoints.length + 1) * options.pointSpace
-      let content = `${svg.mergeLines.map(e => e.draw(id, options)).join('\n')}
-      ${svg.commitLines.map(e => e.draw(id, options)).join('\n')}
-      ${svg.commitPoints.map(e => e.draw(id, options)).join('\n')}
-      ${svg.commitMessages.map(e => e.draw(id, options)).join('\n')}`
-      if (options.showBranchInfo) {
-        content += newDivider(0, height - options.pointSpace * (svg.branchInfos.length + 0.8), width, '#dadce0').draw(id, options)
-        const infos = svg.branchInfos.map(e => e.draw(id, options).trim()).filter(e => e.length > 0)
-        if (infos.length > 0) {
-          content += `<g>${infos.join('\n')}</g>`
-        }
-      }
-      return `<svg width='${width}' height='${height}' xmlns='http://www.w3.org/2000/svg'>${content}</svg>`
-    },
-  }
-  addToSvg(branchs, svg)
-  return svg.draw(svg.id, svg.theme)
-}
-
-export {
-  getBranches,
-  getSortedCommits,
-  getSvg,
-  GitGraphPlugin,
-}
+export { GitGraphPlugin }
