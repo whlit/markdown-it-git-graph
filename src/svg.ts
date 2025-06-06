@@ -1,8 +1,8 @@
 import type { Commit } from './git.js'
-import type { RequiredOptions, RequiredSvgTheme } from './options.js'
+import type { RequiredOptions, RequiredTheme } from './options.js'
 
 interface Drawable {
-  draw: (id: string, theme: RequiredSvgTheme) => string
+  draw: (id: string, theme: RequiredTheme) => string
 }
 
 type Point = Drawable & {
@@ -32,7 +32,7 @@ function newPoint(hash: string, x: number, y: number, color: string): Point {
     x,
     y,
     color,
-    draw(id: string, theme: RequiredSvgTheme) {
+    draw(id: string, theme: RequiredTheme) {
       return `<circle id="p-${id}-${hash}" cx="${this.x}" cy="${this.y}" r="${theme.pointRadius}" fill="${this.color}" />`
     },
   } as Point
@@ -54,10 +54,10 @@ function newMergeLine(from: Point, to: Point, color: string): MergeLine {
     from,
     to,
     color,
-    draw(_, theme: RequiredSvgTheme) {
-      const flag = Math.abs(this.to.y - this.from.y) > theme.pointSpace
+    draw(_, theme: RequiredTheme) {
+      const flag = Math.abs(this.to.y - this.from.y) > theme.lineHeight
       const x1 = this.from.x
-      const y1 = this.to.y > this.from.y ? this.to.y - theme.pointSpace : this.to.y + theme.pointSpace
+      const y1 = this.to.y > this.from.y ? this.to.y - theme.lineHeight : this.to.y + theme.lineHeight
       const x2 = this.to.x
       const y2 = this.to.y
       return `<path d="M ${this.from.x} ${this.from.y}${flag ? ` ${x1} ${y1}` : ''} C ${0.8 * x1 + 0.2 * x2
@@ -67,11 +67,11 @@ function newMergeLine(from: Point, to: Point, color: string): MergeLine {
   }
 }
 
-function addToSvg(commits: Commit[], svg: Svg, theme: RequiredSvgTheme): void {
-  svg.height = commits.length * theme.pointSpace
+function addToSvg(commits: Commit[], svg: Svg, theme: RequiredTheme): void {
+  svg.height = commits.length * theme.lineHeight
   const padding = {
-    x: theme.lineSpace / 2,
-    y: theme.pointSpace / 2,
+    x: theme.lineWidth / 2,
+    y: theme.lineHeight / 2,
   }
   const branchInfoCache: { [key: number]: { color: string, x: number } } = {}
   const points: { [key: string]: Point } = {}
@@ -88,16 +88,16 @@ function addToSvg(commits: Commit[], svg: Svg, theme: RequiredSvgTheme): void {
     if (!branch) {
       branch = {
         color: commit.branch.id < theme.colors.length ? theme.colors[commit.branch.id] : randomColor(),
-        x: commit.branch.id * theme.lineSpace + padding.x,
+        x: commit.branch.id * theme.lineWidth + padding.x,
       }
       branchInfoCache[commit.branch.id] = branch
     }
     // new point
-    const point = newPoint(commit.hash, branch.x, i * theme.pointSpace + padding.y, branch.color)
+    const point = newPoint(commit.hash, branch.x, i * theme.lineHeight + padding.y, branch.color)
     points[commit.hash] = point
     svg.points.push(point)
   }
-  svg.width = (Object.keys(branchInfoCache).length) * theme.lineSpace
+  svg.width = (Object.keys(branchInfoCache).length) * theme.lineWidth
 
   for (let i = 0; i < commits.length; i++) {
     const commit = commits[i]
@@ -106,7 +106,7 @@ function addToSvg(commits: Commit[], svg: Svg, theme: RequiredSvgTheme): void {
     if (commit.base === undefined && commit.merge === undefined) {
       svg.lines.push(newLine({
         x: point.x,
-        y: svg.height - theme.pointSpace,
+        y: svg.height - theme.lineHeight,
       }, point, point.color))
       continue
     }
@@ -146,17 +146,14 @@ function getSvg(idx: number, commits: Commit[], options: RequiredOptions): Svg {
     lines: [],
     mergeLines: [],
     errors: [],
-    draw(_: string, theme: RequiredSvgTheme) {
+    draw(_: string, theme: RequiredTheme) {
       if (svg.errors.length > 0) {
         return `<svg width=300 height=100 xmlns='http://www.w3.org/2000/svg'>
         ${svg.errors.map(e => e.draw(this.id, theme)).join('\n')}</svg>`
       }
-      return `<svg width='${this.width}' height='${this.height}' xmlns='http://www.w3.org/2000/svg'>${
-        this.mergeLines.map(e => e.draw(this.id, theme)).join('')
-      }${
-        this.lines.map(e => e.draw(this.id, theme)).join('')
-      }${
-        this.points.map(e => e.draw(this.id, theme)).join('')
+      return `<svg width='${this.width}' height='${this.height}' xmlns='http://www.w3.org/2000/svg'>${this.mergeLines.map(e => e.draw(this.id, theme)).join('')
+      }${this.lines.map(e => e.draw(this.id, theme)).join('')
+      }${this.points.map(e => e.draw(this.id, theme)).join('')
       }</svg>`
     },
   }

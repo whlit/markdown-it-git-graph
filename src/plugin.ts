@@ -19,19 +19,13 @@ const GitGraphPlugin: PluginWithOptions<MarkdownItGitGraphOptions>
       const language = token.info.trim()
 
       if (language.startsWith('git-graph')) {
-        const theme = language.length > 9
-          ? {
-              ...gitGraphOptions.theme,
-              ...parseTheme(language.slice(9)),
-            }
-          : {
-              ...gitGraphOptions.theme,
-            }
-        const opt = {
+        return parse(idx, token.content, {
           ...gitGraphOptions,
-          theme,
-        }
-        return parse(idx, token.content, opt)
+          theme: {
+            ...gitGraphOptions.theme,
+            ...parseTheme(language.slice(9)),
+          },
+        })
       }
       return fence?.(
         tokens,

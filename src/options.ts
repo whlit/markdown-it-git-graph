@@ -6,26 +6,34 @@ interface MarkdownItGitGraphOptions {
   defaultBranchName?: string
 
   /**
+   * The theme of the svg.
+   */
+  theme?: Theme
+}
+
+interface Theme {
+  /**
    * The columns to show.
    */
   columns?: Column[]
 
   /**
-   * The theme of the svg.
+   * The date format.
    */
-  theme?: SvgTheme
-}
+  dateFormat?: Intl.DateTimeFormatOptions
 
-interface SvgTheme {
   colors?: string[]
-  pointSpace?: number
-  lineSpace?: number
+  /**
+   * The line height. Mast be greater than 20.
+   */
+  lineHeight?: number
+  lineWidth?: number
   pointRadius?: number
 }
 
 type Column = 'hash' | 'message' | 'date'
 
-const defaultTheme: RequiredSvgTheme = {
+const defaultTheme: RequiredTheme = {
   colors: [
     '#e6194b',
     '#ffe119',
@@ -40,19 +48,24 @@ const defaultTheme: RequiredSvgTheme = {
     '#008080',
     '#e6beff',
   ],
-  pointSpace: 24,
-  lineSpace: 20,
+  lineHeight: 24,
+  lineWidth: 20,
   pointRadius: 5,
+  columns: ['message', 'hash'],
+  dateFormat: {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  },
 }
 
 const defaultOptions: RequiredOptions = {
   defaultBranchName: 'main',
-  columns: ['message', 'date', 'hash'],
+
   theme: defaultTheme,
 }
-type RequiredSvgTheme = Required<SvgTheme>
+type RequiredTheme = Required<Theme>
 type RequiredOptions = Required<{ [K in keyof MarkdownItGitGraphOptions]:
-  SvgTheme extends MarkdownItGitGraphOptions[K] ? RequiredSvgTheme : MarkdownItGitGraphOptions[K] }>
+  Theme extends MarkdownItGitGraphOptions[K] ? RequiredTheme : MarkdownItGitGraphOptions[K] }>
 
 function getOptions(options?: MarkdownItGitGraphOptions): RequiredOptions {
   if (!options) {
@@ -83,14 +96,16 @@ const converters = {
   boolean: (str?: string) => str ? str === 'true' ? true : str === 'false' ? false : undefined : undefined,
 }
 
-const themeConverter: { [K in keyof RequiredSvgTheme]: ((str?: string) => any) | undefined } = {
+const themeConverter: { [K in keyof RequiredTheme]: ((str?: string) => any) | undefined } = {
   colors: converters.strings,
-  pointSpace: converters.number,
-  lineSpace: converters.number,
+  lineHeight: converters.number,
+  lineWidth: converters.number,
   pointRadius: converters.number,
+  columns: converters.strings,
+  dateFormat: undefined,
 }
 
-function parseTheme(text: string): SvgTheme {
+function parseTheme(text: string): Theme {
   const strs = text.trim().split('&')
   const obj: { [key: string]: string } = {}
   strs.forEach((str) => {
@@ -111,7 +126,7 @@ function parseTheme(text: string): SvgTheme {
     }
     theme[key] = value
   })
-  return theme as SvgTheme
+  return theme as Theme
 }
 
 export {
@@ -120,6 +135,5 @@ export {
   MarkdownItGitGraphOptions,
   parseTheme,
   RequiredOptions,
-  RequiredSvgTheme,
-  SvgTheme,
+  RequiredTheme,
 }

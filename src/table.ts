@@ -13,18 +13,24 @@ type Table = Drawable & {
 function getTable(idx: number, branchs: Branch[], options: RequiredOptions): Table {
   const commits = getSortedCommits(branchs)
   return {
-    columns: options.columns,
+    columns: options.theme.columns,
     commits,
     svg: getSvg(idx, commits, options),
     draw(id, theme) {
       return `<table class="gg-table"><tbody><tr class="gg-td-svg"><td rowSpan="99999">${this.svg.draw(id, theme)
-      }</td></tr>${this.commits.map(commit => `<tr><td>${commit.message
-      }</td><td>${new Intl.DateTimeFormat(undefined, {
-        dateStyle: 'short',
-        timeStyle: 'short',
-      }).format(commit.date)
-      }</td><td>${commit.hash
-      }</td></tr>`).join('')
+      }</td></tr>${this.commits.map(commit => `<tr>${this.columns.map((column) => {
+        switch (column) {
+          case 'hash':
+            return `<td>${commit.hash}</td>`
+          case 'message':
+            return `<td>${commit.message}</td>`
+          case 'date':
+            return `<td>${new Intl.DateTimeFormat('default', options.theme.dateFormat).format(commit.date)}</td>`
+          default:
+            return ''
+        }
+      }).join('')
+      }</tr>`).join('')
       }</tbody></table>`
     },
   }

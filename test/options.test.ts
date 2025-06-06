@@ -10,10 +10,10 @@ it('parsetheme', () => {
   expect(parseTheme('colors=red,blue')).toEqual({
     colors: ['red', 'blue'],
   })
-  expect(parseTheme('pointSpace=3')).toEqual({
-    pointSpace: 3,
+  expect(parseTheme('lineHeight=3')).toEqual({
+    lineHeight: 3,
   })
-  expect(parseTheme('pointSpace=false')).toEqual({})
-  expect(parseTheme('pointSpace=')).toEqual({})
-  expect(parseTheme('pointSpace')).toEqual({})
+  expect(parseTheme('lineHeight=false')).toEqual({})
+  expect(parseTheme('lineHeight=')).toEqual({})
+  expect(parseTheme('lineHeight')).toEqual({})
 })

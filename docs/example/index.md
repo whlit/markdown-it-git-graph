@@ -51,7 +51,7 @@ ba7c7c7c<9091ab29   'add test.md'            2025-02-02
 ```git-graph showHash=false&showDate=false
 ````
 
-```git-graph showHash=false&showDate=false
+```git-graph columns=hash,message
 [main]
 8991ab29<ab315c05   'merge feature/dev_1'    2025-02-02
 9091ab29            'add help.md'            2025-02-03
