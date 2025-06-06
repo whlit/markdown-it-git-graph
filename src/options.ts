@@ -51,7 +51,7 @@ const defaultTheme: RequiredTheme = {
   lineHeight: 24,
   lineWidth: 20,
   pointRadius: 5,
-  columns: ['message', 'hash'],
+  columns: ['message', 'date', 'hash'],
   dateFormat: {
     dateStyle: 'short',
     timeStyle: 'short',

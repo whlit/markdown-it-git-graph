@@ -12,25 +12,34 @@ npm install markdown-it-git-graph
 
 ```ts
 import MarkdownIt from 'markdown-it'
-import { gitGraphPlugin } from '../plugin'
+import { gitGraphPlugin } from 'markdown-it-git-graph'
 
 const md = new MarkdownIt()
   .use(gitGraphPlugin)
 
-const svg = md.render(`\`\`\`git-graph
+const text = md.render(`\`\`\`git-graph
 [main]
-abc sonmething
-bbc<kqj 'do something'
-kqi 'merge dev to main'
-[dev]
-kqj 'do something' 2
-bai 'do something2'
+8991ab29<ab315c05   'merge feature/dev_1'    2025-02-02
+9091ab29            'add help.md'            2025-02-03
+d920f7c1            'add README.md'          2025-02-01
+c72b76ef            'init repo'              2025-02-01
+[feature/dev_1]
+ab315c05            'update index.md'        2025-02-03
+910f0f0f            'something'              2025-02-03
+0c5c0c05<d920f7c1   'add index.md'           2025-02-02
+[feature/dev_2]
+872ac0c0            'do something'           2025-02-08
+bb38a909            'do something'           2025-02-02
+ba7c7c7c<9091ab29   'add test.md'            2025-02-02
+[feature/dev_3]
+0c5c9005            'add git.md'             2025-02-07
+0c820c05<d920f7c1   'add svg.md'             2025-02-01
 \`\`\``)
 ```
 
 使用` ```git-graph `标注代码块，然后再代码块中，上面的结果示例：
 
-![merge](docs/public/merge.svg)
+![example](docs/public/example.png)
 
 ### 分支
 
@@ -63,39 +72,42 @@ commit2 'this is a commit message' 2025-05-24
 
 ### 合并记录
 
-在`hash`段指定合并记录，格式为`hash1<hash2`，表示`hash1`所在的分支合并了`hash2`。 例如：下面的示例中，`main`分支合并了`dev`分支的代码，创建了`bbc`这个合并记录。同时也表示`bbc`是由`kqi`和`kqj`两个提交合并而来的。结果展示如图所示。
+在`hash`段指定合并记录，格式为`hash1<hash2`，表示`hash1`所在的分支合并了`hash2`。 例如：下面的示例中，`main`分支合并了`dev`分支的代码，创建了`8991ab29`这个合并记录。同时也表示`8991ab29`是由`ab315c05`和`9091ab29`两个提交合并而来的。结果展示如图所示。
 
 ````
 ```git-graph
 [main]
-abc sonmething
-bbc<kqj 'do something'
-kqi 'merge dev to main'
-[dev]
-kqj 'do something' 2
-bai 'do something2'
+8991ab29<ab315c05   'merge feature/dev_1'    2025-02-02
+9091ab29            'add help.md'            2025-02-03
+d920f7c1            'add README.md'          2025-02-01
+c72b76ef            'init repo'              2025-02-01
+[feature/dev_1]
+ab315c05            'update index.md'        2025-02-03
+910f0f0f            'something'              2025-02-03
+0c5c0c05            'add index.md'           2025-02-02
 ```
 ````
 
-![merge](docs/public/merge.svg)
+![merge](docs/public/merge.png)
 
 ### 新建分支
 
-新建分支，并在新分支上提交一个提交记录，那么这个提交记录我们可以看作是上游分支与空分支的合并的结果，所以格式和合并记录一样，`hash1<hash2`。例如：下面的示例中`dev`分支从`main`分支的`bbc`提交记录创建。
+新建分支，并在新分支上提交一个提交记录，那么这个提交记录我们可以看作是上游分支与空分支的合并的结果，所以格式和合并记录一样，`hash1<hash2`。例如：下面的示例中`dev`分支从`main`分支的`d920f7c1`提交记录创建。
 
 ````
 ```git-graph
 [main]
-abc sonmething 3
-bbc 'do something'
-kqi 'merge dev to main'
-[dev]
-kqj 'do something' 2
-bai<bbc 'do something2'
+8991ab29<ab315c05   'merge feature/dev_1'    2025-02-02
+9091ab29            'add help.md'            2025-02-03
+d920f7c1            'add README.md'          2025-02-01
+c72b76ef            'init repo'              2025-02-01
+[feature/dev_3]
+0c5c9005            'add git.md'             2025-02-07
+0c820c05<d920f7c1   'add svg.md'             2025-02-01
 ```
 ````
 
-![merge](./docs/public/checkout.svg)
+![checkout](./docs/public/checkout.png)
 
 ## 配置
 
@@ -104,39 +116,40 @@ bai<bbc 'do something2'
 | defaultBranchName    | string                      | 默认分支名称                                          |
 | theme                | SvgTheme                    | Svg主题设置                                          |
 | theme.colors         | string[]                    | 颜色列表，优先使用的颜色列表，分支数超出时，使用随机颜色  |
-| theme.pointSpace     | number                      | 点间距，默认 25                                       |
-| theme.pointRadius    | number                      | 点半径，默认 5                                        |
+| theme.lineHeight     | number                      | 每条提交信息的展示高度，默认 24                                       |
 | theme.lineWidth      | number                      | 分支线间距，默认 20                                   |
-| theme.showHash       | boolean                     | 是否显示 hash                                        |
-| theme.showDate       | boolean                     | 是否显示日期                                          |
-| theme.showBranchInfo | boolean                     | 是否显示分支信息                                      |
-| theme.charWidth      | number                      | 字符宽度，默认 10, 用于非精确计算字符串长度             |
+| theme.pointRadius    | number                      | 点半径，默认 5                                        |
 | theme.dateFormat     | Intl.DateTimeFormatOptions  | 日期格式                                             |
+| theme.columns        | ('hash' | 'message' | 'date')[] | 展示的字段 |
 
 ### 全局配置 
 
 ```ts
 const md = MarkdownIt().use(GitGraphPlugin, {
-  defaultBranchName: 'dev',
+  defaultBranchName: 'main',
   theme: {
     colors: [
+      '#e6194b',
+      '#ffe119',
+      '#4363d8',
+      '#3cb44b',
+      '#f58231',
+      '#911eb4',
+      '#46f0f0',
+      '#f032e6',
+      '#bcf60c',
+      '#fabebe',
       '#008080',
       '#e6beff',
-      'blue',
-      'red'
     ],
-    pointSpace: 30,
-    lineSpace: 25,
-    pointRadius: 7,
-    showBranchInfo: true,
-    showHash: true,
-    showDate: true,
+    lineHeight: 24,
+    lineWidth: 20,
+    pointRadius: 5,
+    columns: ['message', 'date', 'hash'],
     dateFormat: {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+      dateStyle: 'short',
+      timeStyle: 'short',
     },
-    charWidth: 12
   }
 })
 ```
@@ -146,16 +159,40 @@ const md = MarkdownIt().use(GitGraphPlugin, {
 对于每个图块，可以在其内部添加配置项。配置项对于该图块有效，将覆盖全局配置。
 
 ````
-```git-graph colors=#e6194b,#ffe119&showHash=false&showDate=false
+```git-graph colors=#e6194b,#ffe119&columns=message,hash
 [main]
-8991ab29<ab315c05   'merge feature/dev_1'    2025-02-05
+8991ab29<ab315c05   'merge feature/dev_1'    2025-02-02
 9091ab29            'add help.md'            2025-02-03
 d920f7c1            'add README.md'          2025-02-01
+c72b76ef            'init repo'              2025-02-01
 [feature/dev_1]
 ab315c05            'update index.md'        2025-02-03
 910f0f0f            'something'              2025-02-03
 0c5c0c05<d920f7c1   'add index.md'           2025-02-02
+[feature/dev_2]
+872ac0c0            'do something'           2025-02-08
+bb38a909            'do something'           2025-02-02
+ba7c7c7c<9091ab29   'add test.md'            2025-02-02
+[feature/dev_3]
+0c5c9005            'add git.md'             2025-02-07
+0c820c05<d920f7c1   'add svg.md'             2025-02-01
 ```
 ````
 
-![config](docs/public/config.svg)
+![config](docs/public/config.png)
+
+### 引入样式
+
+需要引入样式文件或者直接添加样式到页面中，否则样式会丢失。例如在`vitepress`中引入样式
+
+```ts
+import type { Theme } from 'vitepress'
+import DefaultTheme from 'vitepress/theme'
+import 'markdown-it-git-graph/styles/index.css'
+
+export default <Theme>{
+  extends: DefaultTheme,
+  enhanceApp: async () => {},
+}
+
+```

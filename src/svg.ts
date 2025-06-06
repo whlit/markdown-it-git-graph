@@ -106,7 +106,7 @@ function addToSvg(commits: Commit[], svg: Svg, theme: RequiredTheme): void {
     if (commit.base === undefined && commit.merge === undefined) {
       svg.lines.push(newLine({
         x: point.x,
-        y: svg.height - theme.lineHeight,
+        y: svg.height - padding.y,
       }, point, point.color))
       continue
     }
