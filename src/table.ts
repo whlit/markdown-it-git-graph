@@ -1,8 +1,8 @@
-import type { Branch, Commit } from './git'
-import type { Column, RequiredOptions } from './options'
-import type { Drawable, Svg } from './svg'
-import { getSortedCommits } from './git'
-import { getSvg } from './svg'
+import type { Branch, Commit } from './git.js'
+import type { Column, RequiredOptions } from './options.js'
+import type { Drawable, Svg } from './svg.js'
+import { getSortedCommits } from './git.js'
+import { getSvg } from './svg.js'
 
 type Table = Drawable & {
   columns: Column[]
