@@ -6,28 +6,24 @@ interface MarkdownItGitGraphOptions {
   defaultBranchName?: string
 
   /**
+   * The columns to show.
+   */
+  columns?: Column[]
+
+  /**
    * The theme of the svg.
    */
   theme?: SvgTheme
 }
 
 interface SvgTheme {
-  /**
-   * The branch colors.
-   */
   colors?: string[]
   pointSpace?: number
   lineSpace?: number
   pointRadius?: number
-  showBranchInfo?: boolean
-  showHash?: boolean
-  showDate?: boolean
-  dateFormat?: Intl.DateTimeFormatOptions
-  /**
-   * 字符宽度，用于非精确的计算文本长度
-   */
-  charWidth?: number
 }
+
+type Column = 'hash' | 'message' | 'date'
 
 const defaultTheme: RequiredSvgTheme = {
   colors: [
@@ -44,22 +40,14 @@ const defaultTheme: RequiredSvgTheme = {
     '#008080',
     '#e6beff',
   ],
-  pointSpace: 25,
+  pointSpace: 24,
   lineSpace: 20,
   pointRadius: 5,
-  showBranchInfo: true,
-  showHash: true,
-  showDate: true,
-  dateFormat: {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  },
-  charWidth: 10,
 }
 
 const defaultOptions: RequiredOptions = {
   defaultBranchName: 'main',
+  columns: ['message', 'date', 'hash'],
   theme: defaultTheme,
 }
 type RequiredSvgTheme = Required<SvgTheme>
@@ -100,11 +88,6 @@ const themeConverter: { [K in keyof RequiredSvgTheme]: ((str?: string) => any) |
   pointSpace: converters.number,
   lineSpace: converters.number,
   pointRadius: converters.number,
-  showBranchInfo: converters.boolean,
-  showHash: converters.boolean,
-  showDate: converters.boolean,
-  dateFormat: undefined,
-  charWidth: converters.number,
 }
 
 function parseTheme(text: string): SvgTheme {
@@ -132,6 +115,7 @@ function parseTheme(text: string): SvgTheme {
 }
 
 export {
+  Column,
   getOptions,
   MarkdownItGitGraphOptions,
   parseTheme,

@@ -8,15 +8,17 @@ interface Commit {
 }
 
 interface Branch {
+  id: number
   name: string
   commits: Commit[]
 }
 
 const branchRegex = /^\[.*\]/
 
-function parseBranch(row: string): Branch | undefined {
+function parseBranch(id: number, row: string): Branch | undefined {
   if (branchRegex.test(row)) {
     return {
+      id,
       name: row.substring(1, row.indexOf(']')),
       commits: [],
     }
@@ -107,13 +109,14 @@ function getBranches(text: string, defaultBranchName: string): Branch[] {
     if (row === '') {
       continue
     }
-    const branch = parseBranch(row)
+    const branch = parseBranch(branches.length, row)
     if (branch !== undefined) {
       branches.push(branch)
       continue
     }
     if (branches.length === 0) {
       branches.push({
+        id: 0,
         name: defaultBranchName,
         commits: [],
       })

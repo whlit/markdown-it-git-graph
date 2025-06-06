@@ -1,6 +1,5 @@
-import type { Branch } from './git.js'
+import type { Commit } from './git.js'
 import type { RequiredOptions, RequiredSvgTheme } from './options.js'
-import { getSortedCommits } from './git.js'
 
 interface Drawable {
   draw: (id: string, theme: RequiredSvgTheme) => string
@@ -68,26 +67,13 @@ function newMergeLine(from: Point, to: Point, color: string): MergeLine {
   }
 }
 
-function addToSvg(branches: Branch[], svg: Svg, theme: RequiredSvgTheme): void {
-  const commits = getSortedCommits(branches)
-  svg.height = (commits.length + 1) * theme.pointSpace
+function addToSvg(commits: Commit[], svg: Svg, theme: RequiredSvgTheme): void {
+  svg.height = commits.length * theme.pointSpace
   const padding = {
     x: theme.lineSpace / 2,
     y: theme.pointSpace / 2,
   }
-  const branchInfos: { [key: string]: { x: number, color: string } } = {}
-  branches.forEach((branch, idx) => {
-    if (branchInfos[branch.name] !== undefined) {
-      svg.errors.push({
-        draw: () => `branch ${branch.name} is not uniqued`,
-      })
-      return
-    }
-    branchInfos[branch.name] = {
-      x: padding.x + idx * theme.lineSpace,
-      color: idx < theme.colors.length ? theme.colors[idx] : randomColor(),
-    }
-  })
+  const branchInfoCache: { [key: number]: { color: string, x: number } } = {}
   const points: { [key: string]: Point } = {}
   for (let i = 0; i < commits.length; i++) {
     const commit = commits[i]
@@ -98,12 +84,20 @@ function addToSvg(branches: Branch[], svg: Svg, theme: RequiredSvgTheme): void {
       })
       continue
     }
-    const group = branchInfos[commit.branch.name]
+    let branch = branchInfoCache[commit.branch.id]
+    if (!branch) {
+      branch = {
+        color: commit.branch.id < theme.colors.length ? theme.colors[commit.branch.id] : randomColor(),
+        x: commit.branch.id * theme.lineSpace + padding.x,
+      }
+      branchInfoCache[commit.branch.id] = branch
+    }
     // new point
-    const point = newPoint(commit.hash, group.x, i * theme.pointSpace + padding.y, group.color)
+    const point = newPoint(commit.hash, branch.x, i * theme.pointSpace + padding.y, branch.color)
     points[commit.hash] = point
     svg.points.push(point)
   }
+  svg.width = (Object.keys(branchInfoCache).length) * theme.lineSpace
 
   for (let i = 0; i < commits.length; i++) {
     const commit = commits[i]
@@ -143,10 +137,10 @@ function addToSvg(branches: Branch[], svg: Svg, theme: RequiredSvgTheme): void {
   }
 }
 
-function getSvg(idx: number, branchs: Branch[], options: RequiredOptions): Svg {
+function getSvg(idx: number, commits: Commit[], options: RequiredOptions): Svg {
   const svg: Svg = {
     id: idx.toString(),
-    width: branchs.length * options.theme.lineSpace,
+    width: 0,
     height: 0,
     points: [],
     lines: [],
@@ -166,7 +160,7 @@ function getSvg(idx: number, branchs: Branch[], options: RequiredOptions): Svg {
       }</svg>`
     },
   }
-  addToSvg(branchs, svg, options.theme)
+  addToSvg(commits, svg, options.theme)
   return svg
 }
 

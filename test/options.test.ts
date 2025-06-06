@@ -16,12 +16,4 @@ it('parsetheme', () => {
   expect(parseTheme('pointSpace=false')).toEqual({})
   expect(parseTheme('pointSpace=')).toEqual({})
   expect(parseTheme('pointSpace')).toEqual({})
-  expect(parseTheme('showHash=true')).toEqual({
-    showHash: true,
-  })
-  expect(parseTheme('showHash=false')).toEqual({
-    showHash: false,
-  })
-  expect(parseTheme('showHash=fals')).toEqual({})
-  expect(parseTheme('showHash')).toEqual({})
 })

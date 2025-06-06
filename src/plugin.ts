@@ -2,7 +2,7 @@ import type { PluginWithOptions } from 'markdown-it'
 import type { MarkdownItGitGraphOptions, RequiredOptions } from './options.js'
 import { getBranches } from './git.js'
 import { getOptions, parseTheme } from './options.js'
-import { getSvg } from './svg.js'
+import { getTable } from './table.js'
 
 const GitGraphPlugin: PluginWithOptions<MarkdownItGitGraphOptions>
   = (md, options?: MarkdownItGitGraphOptions) => {
@@ -45,8 +45,8 @@ const GitGraphPlugin: PluginWithOptions<MarkdownItGitGraphOptions>
 
 function parse(idx: number, content: string, options: RequiredOptions): string {
   const branches = getBranches(content, options.defaultBranchName)
-  const svg = getSvg(idx, branches, options)
-  return svg.draw(svg.id, options.theme)
+  const table = getTable(idx, branches, options)
+  return table.draw(idx.toString(), options.theme)
 }
 
 export { GitGraphPlugin }
